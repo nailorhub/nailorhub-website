@@ -63,7 +63,7 @@ export default function Header() {
             ))}
             <Button
               onClick={() => scrollTo("#contact")}
-              className="bg-[#1a6fb5] hover:bg-[#155d99] text-white text-[13px] font-semibold tracking-wide px-5 h-9 rounded-lg shadow-sm"
+              className="bg-[#1a6fb5] hover:bg-[#1b6fb5] text-white text-[13px] font-semibold tracking-wide px-5 h-9 rounded-lg shadow-sm"
             >
               Request a Project
             </Button>
