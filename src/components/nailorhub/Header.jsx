@@ -50,7 +50,13 @@ export default function Header() {
               <button
                 key={link.href}
                 onClick={() => scrollTo(link.href)}
-                className="text-[13px] font-medium text-gray-500 hover:text-gray-900 tracking-wide uppercase transition-colors"
+                className={[
+                  "text-[13px] font-medium tracking-wide uppercase transition-colors",
+                  scrolled
+                    ? "text-gray-500 hover:text-[#1a6fb5]"   // when header is white
+                    : "text-white/85 hover:text-white"       // when over blue hero
+                ].join(" ")}
+                
               >
                 {link.label}
               </button>
@@ -65,7 +71,8 @@ export default function Header() {
 
           {/* Mobile Toggle */}
           <button
-            className="md:hidden p-2 text-gray-600"
+            className={`md:hidden p-2 transition-colors ${scrolled ? "text-gray-600" : "text-white"}`}
+
             onClick={() => setMobileOpen(!mobileOpen)}
           >
             {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -81,7 +88,8 @@ export default function Header() {
               <button
                 key={link.href}
                 onClick={() => scrollTo(link.href)}
-                className="block w-full text-left py-3 text-sm font-medium text-gray-600 hover:text-gray-900 border-b border-gray-50 last:border-0"
+                className="block w-full text-left py-3 text-sm font-medium text-gray-600 hover:text-[#1a6fb5] border-b border-gray-50 last:border-0"
+
               >
                 {link.label}
               </button>
