@@ -53,8 +53,8 @@ export default function Header() {
                 className={[
                   "text-[13px] font-medium tracking-wide uppercase transition-colors",
                   scrolled
-                    ? "text-gray-500 hover:text-[#1a6fb5]"   // when header is white
-                    : "text-white/85 hover:text-white"       // when over blue hero
+                    ? "text-gray-500 hover:text-[#1b6fb5]"
+                    : "text-white/85 hover:!text-[#1b6fb5]"
                 ].join(" ")}
                 
               >
