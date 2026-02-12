@@ -39,12 +39,12 @@ export default function FloatingCTA() {
             </Button>
           </motion.div>
 
-         {/* Mobile: floating bottom button (no bar) */}
+         {/* Mobile: floating bottom button */}
 <motion.div
   initial={{ opacity: 0, y: 20 }}
   animate={{ opacity: 1, y: 0 }}
   exit={{ opacity: 0, y: 20 }}
-  className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-40 px-4 w-full"
+  className="md:hidden fixed bottom-6 left-0 right-0 z-40 px-4"
 >
   <Button
     onClick={scrollToContact}
