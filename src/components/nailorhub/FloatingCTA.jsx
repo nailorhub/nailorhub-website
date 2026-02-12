@@ -32,27 +32,27 @@ export default function FloatingCTA() {
           >
             <Button
               onClick={scrollToContact}
-              className="bg-[#1a6fb5] hover:bg-[#155d99] text-white text-[14px] font-semibold px-6 h-11 rounded-xl shadow-xl shadow-[#1a6fb5]/20"
+              className="bg-[#1a6fb5] hover:bg-[#155d99] text-white text-[14px] font-semibold px-6 h-11 rounded-xl shadow-none hover:shadow-none"
             >
               Request a Project
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </motion.div>
 
-         {/* Mobile: floating bottom button */}
-<motion.div
-  initial={{ opacity: 0, y: 20 }}
-  animate={{ opacity: 1, y: 0 }}
-  exit={{ opacity: 0, y: 20 }}
-  className="md:hidden fixed bottom-6 left-0 right-0 z-40 px-4"
->
-  <Button
-    onClick={scrollToContact}
-    className="w-full max-w-[520px] mx-auto bg-[#1a6fb5] hover:bg-[#155d99] text-white text-[15px] font-semibold h-12 rounded-xl shadow-xl shadow-[#1a6fb5]/25"
-  >
-    Request a Project
-  </Button>
-</motion.div>
+          {/* Mobile: floating bottom button */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            className="md:hidden fixed bottom-6 left-0 right-0 z-40 px-4"
+          >
+            <Button
+              onClick={scrollToContact}
+              className="w-full max-w-[520px] mx-auto bg-[#1a6fb5] hover:bg-[#155d99] text-white text-[15px] font-semibold h-12 rounded-xl shadow-none hover:shadow-none"
+            >
+              Request a Project
+            </Button>
+          </motion.div>
         </>
       )}
     </AnimatePresence>
