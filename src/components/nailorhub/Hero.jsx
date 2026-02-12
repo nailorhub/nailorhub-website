@@ -59,23 +59,26 @@ export default function Hero() {
           </motion.div>
 
           <motion.h1
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.1, ease: "easeOut" }} className="text-white mb-[22px] pt-10 text-3xl font-bold tracking-tight leading-[1.2] sm:text-4xl lg:text-5xl">Transform your business with custom-tailored solutions
+  initial={{ opacity: 0 }}
+  animate={{ opacity: 1 }}
+  transition={{ duration: 0.6, delay: 0.1, ease: "easeOut" }}
+  className="text-white mb-[22px] pt-10 text-3xl font-bold tracking-tight leading-[1.2] sm:text-4xl lg:text-5xl"
+>
+  Internal tools that connect your{" "}
+  <span className="text-[#1a6fb5]">workflow</span> and your{" "}
+  <span className="text-[#1a6fb5]">data</span>
+</motion.h1>
 
+<motion.p
+  initial={{ opacity: 0 }}
+  animate={{ opacity: 1 }}
+  transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
+  className="text-gray-300 mb-7 pb-10 leading-[1.6] max-w-[640px]"
+>
+  Built custom with no-code, low-code, and custom development so your workflows stay clean,
+  connected, and visible.
+</motion.p>
 
-
-
-          </motion.h1>
-
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }} className="text-gray-300 mb-7 pb-10 leading-[1.6] max-w-[640px]">From personalized workflows to tailored applications, we empower businesses and individuals to enhance efficiency with no-code, low-code, and custom-code solutions.
-
-
-
-          </motion.p>
 
           <motion.div
             initial={{ opacity: 0 }}
