@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowUp } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function FloatingCTA() {
@@ -35,7 +35,7 @@ export default function FloatingCTA() {
               className="bg-[#1a6fb5] hover:bg-[#155d99] text-white text-[14px] font-semibold px-6 h-11 rounded-xl shadow-xl shadow-[#1a6fb5]/20"
             >
               Request a Project
-              <ArrowUp className="w-4 h-4 ml-2" />
+              <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </motion.div>
 
