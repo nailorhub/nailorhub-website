@@ -84,27 +84,28 @@ export default function Hero() {
           </motion.p>
 
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.4, ease: "easeOut" }}
-            className="flex flex-col sm:flex-row items-center justify-center gap-2.5"
-          >
-            <Button
-              onClick={() => scrollTo("#contact")}
-              className="bg-[#1a6fb5] hover:bg-[#155d99] text-white text-[14px] md:text-[15px] font-semibold px-6 md:px-7 h-11 md:h-12 rounded-xl shadow-lg shadow-[#1a6fb5]/20 hover:shadow-[#1a6fb5]/30 transition-all"
-            >
-              Get Started Now
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
+  initial={{ opacity: 0 }}
+  animate={{ opacity: 1 }}
+  transition={{ duration: 0.6, delay: 0.4, ease: "easeOut" }}
+  className="flex w-full max-w-[420px] flex-row items-center justify-center gap-3"
+>
+  <Button
+    onClick={() => scrollTo("#contact")}
+    className="flex-1 bg-[#1a6fb5] hover:bg-[#155d99] text-white text-[14px] md:text-[15px] font-semibold px-4 md:px-7 h-11 md:h-12 rounded-xl shadow-lg shadow-[#1a6fb5]/20 hover:shadow-[#1a6fb5]/30 transition-all"
+  >
+    Get Started
+    <ArrowRight className="w-4 h-4 ml-2" />
+  </Button>
 
-            <Button
-              variant="outline"
-              onClick={() => scrollTo("#services")}
-              className="text-[14px] md:text-[15px] font-medium px-6 md:px-7 h-11 md:h-12 rounded-xl border-[#1a6fb5]/30 text-white hover:text-white hover:bg-[#1a6fb5]/10 bg-transparent"
-            >
-              Explore Services
-            </Button>
-          </motion.div>
+  <Button
+    variant="outline"
+    onClick={() => scrollTo("#services")}
+    className="flex-1 text-[14px] md:text-[15px] font-medium px-4 md:px-7 h-11 md:h-12 rounded-xl border-[#1a6fb5]/30 text-white hover:text-white hover:bg-[#1a6fb5]/10 bg-transparent"
+  >
+    Services
+  </Button>
+</motion.div>
+
 
           {/* System connectors visual */}
           <motion.div
