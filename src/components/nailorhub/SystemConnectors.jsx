@@ -21,11 +21,14 @@ function useIsMobile(breakpointPx = 640) {
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
     const mq = window.matchMedia(`(max-width: ${breakpointPx}px)`);
     const update = () => setIsMobile(!!mq.matches);
     update();
+
     if (mq.addEventListener) mq.addEventListener("change", update);
     else mq.addListener(update);
+
     return () => {
       if (mq.removeEventListener) mq.removeEventListener("change", update);
       else mq.removeListener(update);
@@ -40,6 +43,8 @@ export default function SystemConnectors() {
   const isMobile = useIsMobile(640);
 
   const [hovered, setHovered] = useState(false);
+
+  // Desktop pulses only
   const [pulses, setPulses] = useState([]);
 
   const shellRef = useRef(null);
@@ -54,13 +59,25 @@ export default function SystemConnectors() {
   const mobileChipRefs = useRef([]);
   const mobileHubRef = useRef(null);
 
-  // Shared drawing state
+  // Shared SVG viewBox size
   const [size, setSize] = useState({ w: 640, h: 220 });
-  const [starts, setStarts] = useState([]);
-  const [join, setJoin] = useState({ x: 320, y: 110 });
-  const [end, setEnd] = useState({ x: 320, y: 180 });
 
-  // Path builders
+  // Desktop geometry
+  const [desktopStarts, setDesktopStarts] = useState([]);
+  const [desktopEnd, setDesktopEnd] = useState({ x: 520, y: 70 });
+
+  // Mobile geometry (two vertical lines only)
+  const [mobileGeom, setMobileGeom] = useState({
+    ready: false,
+    xApi: 0,
+    xWebhook: 0,
+    yStart: 0,
+    yEnd: 0,
+  });
+
+  const DOT = 9;
+
+  // Desktop path builder
   const makeDesktopPath = useMemo(() => {
     return (s, e) => {
       if (!s || !e) return "";
@@ -71,42 +88,12 @@ export default function SystemConnectors() {
     };
   }, []);
 
-  const makeMobilePathToJoin = useMemo(() => {
-    return (s, j) => {
-      if (!s || !j) return "";
-      // Vertical, outward-friendly curve so it doesn’t “pinch inward”
-      const midY = s.y + Math.max(22, (j.y - s.y) * 0.55);
-      return `M ${s.x} ${s.y}
-              C ${s.x} ${midY},
-                ${j.x} ${j.y - 18},
-                ${j.x} ${j.y}`;
-    };
-  }, []);
+  const desktopPaths = useMemo(() => {
+    if (!desktopStarts.length) return [];
+    return desktopStarts.map((s) => makeDesktopPath(s, desktopEnd));
+  }, [desktopStarts, desktopEnd, makeDesktopPath]);
 
-  const makeMobileJoinToHub = useMemo(() => {
-    return (j, e) => {
-      if (!j || !e) return "";
-      const midY = j.y + Math.max(18, (e.y - j.y) * 0.55);
-      return `M ${j.x} ${j.y}
-              C ${j.x} ${midY},
-                ${e.x} ${e.y - 18},
-                ${e.x} ${e.y}`;
-    };
-  }, []);
-
-  const paths = useMemo(() => {
-    if (!starts.length) return [];
-    if (isMobile) {
-      const toJoin = starts.map((s) => makeMobilePathToJoin(s, join));
-      const joinToHub = makeMobileJoinToHub(join, end);
-      return { toJoin, joinToHub };
-    }
-    // Desktop
-    const desktop = starts.map((s) => makeDesktopPath(s, end));
-    return { desktop };
-  }, [starts, end, join, isMobile, makeDesktopPath, makeMobilePathToJoin, makeMobileJoinToHub]);
-
-  // Measure + compute geometry
+  // Measure layout + compute geometry
   useLayoutEffect(() => {
     const calcDesktop = () => {
       if (!desktopRowRef.current || !desktopHubRef.current) return;
@@ -117,7 +104,7 @@ export default function SystemConnectors() {
       const w = Math.max(1, Math.round(row.width));
       const h = Math.max(1, Math.round(row.height));
 
-      const newStarts = desktopChipRefs.current
+      const starts = desktopChipRefs.current
         .slice(0, tools.length)
         .filter(Boolean)
         .map((el) => {
@@ -128,14 +115,14 @@ export default function SystemConnectors() {
           };
         });
 
-      const newEnd = {
+      const end = {
         x: clamp(hub.left - row.left - 12, 0, w),
         y: clamp(hub.top - row.top + hub.height / 2, 0, h),
       };
 
       setSize({ w, h });
-      setStarts(newStarts);
-      setEnd(newEnd);
+      setDesktopStarts(starts);
+      setDesktopEnd(end);
     };
 
     const calcMobile = () => {
@@ -147,33 +134,45 @@ export default function SystemConnectors() {
       const w = Math.max(1, Math.round(wrap.width));
       const h = Math.max(1, Math.round(wrap.height));
 
-      const chipRects = mobileChipRefs.current
+      const rects = mobileChipRefs.current
         .slice(0, tools.length)
         .filter(Boolean)
         .map((el) => el.getBoundingClientRect());
 
-      // Start points from bottom-center of each chip
-      const newStarts = chipRects.map((r) => ({
-        x: r.left - wrap.left + r.width / 2,
-        y: r.top - wrap.top + r.height,
-      }));
-
-      // Join point: centered under the chip grid (a bit below the lowest chip)
-      const lowest = chipRects.reduce((m, r) => Math.max(m, r.bottom), -Infinity);
-      const joinY = clamp(lowest - wrap.top + 18, 0, h);
-
-      const newJoin = { x: w / 2, y: joinY };
-
-      // End point: top-center of hub card
-      const newEnd = {
-        x: clamp(hub.left - wrap.left + hub.width / 2, 0, w),
-        y: clamp(hub.top - wrap.top - 10, 0, h),
-      };
+      // Indices: 2 = APIs, 3 = Webhooks
+      const apiRect = rects[2];
+      const hookRect = rects[3];
 
       setSize({ w, h });
-      setStarts(newStarts);
-      setJoin(newJoin);
-      setEnd(newEnd);
+
+      if (!apiRect || !hookRect) {
+        setMobileGeom((g) => ({ ...g, ready: false }));
+        return;
+      }
+
+      const xApi = clamp(apiRect.left - wrap.left + apiRect.width / 2, 0, w);
+      const xWebhook = clamp(hookRect.left - wrap.left + hookRect.width / 2, 0, w);
+
+      // Start just under the bottom row (APIs/Webhooks)
+      const yStart = clamp(
+        Math.round(Math.max(apiRect.bottom, hookRect.bottom) - wrap.top + 6),
+        0,
+        h
+      );
+
+      // End a short distance above the hub top (short lines)
+      let yEnd = clamp(Math.round(hub.top - wrap.top - 12), 0, h);
+
+      // Ensure a minimum visible line length
+      if (yEnd < yStart + 18) yEnd = clamp(yStart + 32, 0, h);
+
+      setMobileGeom({
+        ready: true,
+        xApi,
+        xWebhook,
+        yStart,
+        yEnd,
+      });
     };
 
     const calc = () => {
@@ -199,10 +198,11 @@ export default function SystemConnectors() {
     };
   }, [isMobile]);
 
-  // Pulse scheduling
+  // Desktop pulse scheduling
   useEffect(() => {
+    if (isMobile) return;
     if (reduceMotion) return;
-    if (starts.length !== tools.length) return;
+    if (desktopStarts.length !== tools.length) return;
 
     let cancelled = false;
 
@@ -228,7 +228,7 @@ export default function SystemConnectors() {
     return () => {
       cancelled = true;
     };
-  }, [hovered, reduceMotion, starts.length]);
+  }, [hovered, reduceMotion, desktopStarts.length, isMobile]);
 
   const hubPing = () => {
     const el = shellRef.current?.querySelector?.("[data-hub]");
@@ -239,23 +239,22 @@ export default function SystemConnectors() {
     window.setTimeout(() => el.classList.remove("nh-hub-ping"), 420);
   };
 
-  const DOT = 10;
-
   return (
     <div
       ref={shellRef}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      className="w-full max-w-[640px] mt-7 sm:mt-8"
+      className="w-full max-w-[720px] mt-6 sm:mt-8"
       aria-label="System connectors visual"
     >
       <div className="relative rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-md shadow-[0_10px_40px_rgba(0,0,0,0.25)] overflow-hidden">
+        {/* subtle inner grid */}
         <div className="absolute inset-0 opacity-[0.12] pointer-events-none [mask-image:radial-gradient(ellipse_at_center,black,transparent_65%)]">
           <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.06)_1px,transparent_1px)] bg-[size:24px_24px]" />
         </div>
 
-        {/* MOBILE LAYOUT */}
         {isMobile ? (
+          // MOBILE
           <div ref={mobileWrapRef} className="relative px-4 pt-4 pb-5">
             <svg
               className="pointer-events-none absolute inset-0 w-full h-full"
@@ -263,28 +262,80 @@ export default function SystemConnectors() {
               preserveAspectRatio="none"
               aria-hidden="true"
             >
-              {(paths.toJoin || []).map((d, i) => (
-                <path
-                  key={i}
-                  d={d}
-                  stroke="rgba(255,255,255,0.12)"
-                  strokeWidth="1.35"
-                  fill="none"
-                  strokeLinecap="round"
-                />
-              ))}
-              {paths.joinToHub ? (
-                <path
-                  d={paths.joinToHub}
-                  stroke="rgba(255,255,255,0.16)"
-                  strokeWidth="1.5"
-                  fill="none"
-                  strokeLinecap="round"
-                />
-              ) : null}
+              {mobileGeom.ready && (
+                <>
+                  {/* Two short vertical lines under APIs + Webhooks */}
+                  <line
+                    x1={mobileGeom.xApi}
+                    y1={mobileGeom.yStart}
+                    x2={mobileGeom.xApi}
+                    y2={mobileGeom.yEnd}
+                    stroke="rgba(255,255,255,0.16)"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                  />
+                  <line
+                    x1={mobileGeom.xWebhook}
+                    y1={mobileGeom.yStart}
+                    x2={mobileGeom.xWebhook}
+                    y2={mobileGeom.yEnd}
+                    stroke="rgba(255,255,255,0.16)"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                  />
 
-              {/* join dot */}
-              <circle cx={join.x} cy={join.y} r="4.5" fill="rgba(26,111,181,0.60)" />
+                  {/* Flow dots that travel only on those vertical lines */}
+                  {!reduceMotion && (
+                    <>
+                      <motion.circle
+                        key={`api-dot-${mobileGeom.xApi}-${mobileGeom.yStart}-${mobileGeom.yEnd}`}
+                        cx={mobileGeom.xApi}
+                        r={DOT / 2}
+                        fill="rgb(26,111,181)"
+                        initial={{ cy: mobileGeom.yStart, opacity: 0 }}
+                        animate={{
+                          cy: mobileGeom.yEnd,
+                          opacity: [0, 1, 1, 0],
+                        }}
+                        transition={{
+                          duration: hovered ? 0.65 : 0.85,
+                          ease: "easeInOut",
+                          repeat: Infinity,
+                          repeatDelay: hovered ? 0.25 : 0.45,
+                        }}
+                        onUpdate={(latest) => {
+                          if (typeof latest?.cy === "number" && latest.cy >= mobileGeom.yEnd - 1) {
+                            hubPing();
+                          }
+                        }}
+                      />
+                      <motion.circle
+                        key={`hook-dot-${mobileGeom.xWebhook}-${mobileGeom.yStart}-${mobileGeom.yEnd}`}
+                        cx={mobileGeom.xWebhook}
+                        r={DOT / 2}
+                        fill="rgb(26,111,181)"
+                        initial={{ cy: mobileGeom.yStart, opacity: 0 }}
+                        animate={{
+                          cy: mobileGeom.yEnd,
+                          opacity: [0, 1, 1, 0],
+                        }}
+                        transition={{
+                          duration: hovered ? 0.65 : 0.85,
+                          ease: "easeInOut",
+                          repeat: Infinity,
+                          repeatDelay: hovered ? 0.25 : 0.45,
+                          delay: 0.18,
+                        }}
+                        onUpdate={(latest) => {
+                          if (typeof latest?.cy === "number" && latest.cy >= mobileGeom.yEnd - 1) {
+                            hubPing();
+                          }
+                        }}
+                      />
+                    </>
+                  )}
+                </>
+              )}
             </svg>
 
             {/* Chips grid */}
@@ -315,54 +366,12 @@ export default function SystemConnectors() {
                 <Network className="w-5 h-5 text-[#6fb7ff]" />
               </div>
               <div className="text-white font-semibold tracking-tight">NailorHub</div>
-              <div className="text-[11px] mt-1 text-white/55 leading-tight">
-                One connected system
-              </div>
+              <div className="text-[11px] mt-1 text-white/55 leading-tight">One connected system</div>
               <div className="pointer-events-none absolute inset-0 rounded-2xl shadow-[0_0_0_1px_rgba(26,111,181,0.15),0_0_32px_rgba(26,111,181,0.18)]" />
             </div>
-
-            {/* Pulses: chip -> join (optional) then join -> hub */}
-            {!reduceMotion &&
-              starts.length === tools.length &&
-              (paths.toJoin || []).length === tools.length &&
-              pulses.map((p) => {
-                const d = (paths.toJoin || [])[p.fromIndex];
-                if (!d) return null;
-
-                const duration = hovered ? 1.0 : 1.25;
-
-                return (
-                  <motion.div
-                    key={p.id}
-                    className="pointer-events-none absolute rounded-full bg-[#1a6fb5] shadow-[0_0_18px_rgba(26,111,181,0.65)]"
-                    style={{
-                      width: DOT,
-                      height: DOT,
-                      left: 0,
-                      top: 0,
-                      offsetPath: `path("${d}")`,
-                      WebkitOffsetPath: `path("${d}")`,
-                      offsetRotate: "0deg",
-                      WebkitOffsetRotate: "0deg",
-                      willChange: "offset-distance, opacity, transform",
-                    }}
-                    initial={{ offsetDistance: "0%", opacity: 0, scale: 0.9 }}
-                    animate={{
-                      offsetDistance: "100%",
-                      opacity: [0, 1, 1, 0],
-                      scale: [0.9, 1, 1, 0.85],
-                    }}
-                    transition={{ duration, ease: "easeInOut" }}
-                    onAnimationComplete={() => {
-                      setPulses((prev) => prev.filter((x) => x.id !== p.id));
-                      hubPing();
-                    }}
-                  />
-                );
-              })}
           </div>
         ) : (
-          /* DESKTOP LAYOUT */
+          // DESKTOP
           <div ref={desktopRowRef} className="relative flex items-stretch gap-6 px-5 py-4">
             <svg
               className="pointer-events-none absolute inset-0 w-full h-full"
@@ -370,7 +379,7 @@ export default function SystemConnectors() {
               preserveAspectRatio="none"
               aria-hidden="true"
             >
-              {(paths.desktop || []).map((d, i) => (
+              {desktopPaths.map((d, i) => (
                 <path
                   key={i}
                   d={d}
@@ -380,9 +389,9 @@ export default function SystemConnectors() {
                   strokeLinecap="round"
                 />
               ))}
+              <circle cx={desktopEnd.x} cy={desktopEnd.y} r="4.5" fill="rgba(26,111,181,0.55)" />
             </svg>
 
-            {/* Left chips */}
             <div className="flex flex-col gap-2">
               {tools.map((t, idx) => (
                 <div
@@ -402,27 +411,23 @@ export default function SystemConnectors() {
 
             <div className="relative flex-1" />
 
-            {/* Hub card */}
             <div
               ref={desktopHubRef}
               data-hub
-              className="nh-hub relative z-10 min-w-[220px] sm:min-w-[240px] rounded-2xl border border-[#1a6fb5]/35 bg-[#0a1628]/40 px-4 py-4 flex flex-col items-center justify-center text-center"
+              className="nh-hub relative z-10 min-w-[240px] rounded-2xl border border-[#1a6fb5]/35 bg-[#0a1628]/40 px-4 py-4 flex flex-col items-center justify-center text-center"
             >
               <div className="w-11 h-11 rounded-2xl bg-[#1a6fb5]/10 border border-[#1a6fb5]/25 flex items-center justify-center mb-2">
                 <Network className="w-5 h-5 text-[#6fb7ff]" />
               </div>
               <div className="text-white font-semibold tracking-tight">NailorHub</div>
-              <div className="text-[11px] mt-1 text-white/55 leading-tight">
-                Connected workflow
-              </div>
+              <div className="text-[11px] mt-1 text-white/55 leading-tight">One connected system</div>
               <div className="pointer-events-none absolute inset-0 rounded-2xl shadow-[0_0_0_1px_rgba(26,111,181,0.15),0_0_32px_rgba(26,111,181,0.18)]" />
             </div>
 
-            {/* Desktop pulses (straight along the same curve) */}
             {!reduceMotion &&
-              (paths.desktop || []).length === tools.length &&
+              desktopPaths.length === tools.length &&
               pulses.map((p) => {
-                const d = (paths.desktop || [])[p.fromIndex];
+                const d = desktopPaths[p.fromIndex];
                 if (!d) return null;
 
                 const duration = hovered ? 1.0 : 1.25;
@@ -460,7 +465,7 @@ export default function SystemConnectors() {
         )}
       </div>
 
-      <div className="text-center text-[12px] text-white/60 mt-3 px-2">
+      <div className="text-center text-[11px] sm:text-[12px] text-white/60 mt-2 pb-2">
         We connect your tools into one workflow
       </div>
 
