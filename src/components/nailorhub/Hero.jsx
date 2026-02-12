@@ -19,7 +19,7 @@ export default function Hero() {
   };
 
   return (
-    <section className="relative min-h-screen flex flex-col overflow-hidden bg-[#0a1628]">
+    <section className="relative min-h-[100svh] flex flex-col overflow-visible bg-[#0a1628] pb-[calc(env(safe-area-inset-bottom)+16px)]">
       {/* Tech background */}
       <div
         className="absolute inset-0 opacity-10 hidden md:block"
@@ -43,7 +43,7 @@ export default function Hero() {
       <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-[#1a6fb5]/[0.04] rounded-full blur-3xl" />
 
       {/* Centered content */}
-      <div className="relative flex-1 flex flex-col items-center justify-center max-w-3xl mx-auto w-full px-6 lg:px-8 pt-14 sm:pt-16 md:pt-12 pb-2">
+      <div className="relative flex-1 flex flex-col items-center justify-center max-w-3xl mx-auto w-full px-6 lg:px-8 pt-14 sm:pt-16 md:pt-12 pb-10">
         {/* Text content - centered */}
         <div className="flex flex-col items-center justify-center text-center w-full px-6 md:px-0">
           {/* Badge */}
@@ -84,28 +84,27 @@ export default function Hero() {
           </motion.p>
 
           <motion.div
-  initial={{ opacity: 0 }}
-  animate={{ opacity: 1 }}
-  transition={{ duration: 0.6, delay: 0.4, ease: "easeOut" }}
-  className="flex w-full max-w-[420px] flex-row items-center justify-center gap-3"
->
-  <Button
-    onClick={() => scrollTo("#contact")}
-    className="flex-1 bg-[#1a6fb5] hover:bg-[#155d99] text-white text-[14px] md:text-[15px] font-semibold px-4 md:px-7 h-11 md:h-12 rounded-xl shadow-lg shadow-[#1a6fb5]/20 hover:shadow-[#1a6fb5]/30 transition-all"
-  >
-    Get Started
-    <ArrowRight className="w-4 h-4 ml-2" />
-  </Button>
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.4, ease: "easeOut" }}
+            className="flex w-full max-w-[420px] flex-row items-center justify-center gap-3"
+          >
+            <Button
+              onClick={() => scrollTo("#contact")}
+              className="flex-1 bg-[#1a6fb5] hover:bg-[#155d99] text-white text-[14px] md:text-[15px] font-semibold px-4 md:px-7 h-11 md:h-12 rounded-xl shadow-lg shadow-[#1a6fb5]/20 hover:shadow-[#1a6fb5]/30 transition-all"
+            >
+              Get Started
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
 
-  <Button
-    variant="outline"
-    onClick={() => scrollTo("#services")}
-    className="flex-1 text-[14px] md:text-[15px] font-medium px-4 md:px-7 h-11 md:h-12 rounded-xl border-[#1a6fb5]/30 text-white hover:text-white hover:bg-[#1a6fb5]/10 bg-transparent"
-  >
-    Services
-  </Button>
-</motion.div>
-
+            <Button
+              variant="outline"
+              onClick={() => scrollTo("#services")}
+              className="flex-1 text-[14px] md:text-[15px] font-medium px-4 md:px-7 h-11 md:h-12 rounded-xl border-[#1a6fb5]/30 text-white hover:text-white hover:bg-[#1a6fb5]/10 bg-transparent"
+            >
+              Services
+            </Button>
+          </motion.div>
 
           {/* System connectors visual */}
           <motion.div
