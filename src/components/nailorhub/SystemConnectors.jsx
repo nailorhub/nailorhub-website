@@ -17,81 +17,192 @@ function clamp(n, a, b) {
   return Math.max(a, Math.min(b, n));
 }
 
+function useIsMobile(breakpointPx = 640) {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia(`(max-width: ${breakpointPx}px)`);
+    const update = () => setIsMobile(!!mq.matches);
+    update();
+
+    if (mq.addEventListener) mq.addEventListener("change", update);
+    else mq.addListener(update);
+
+    return () => {
+      if (mq.removeEventListener) mq.removeEventListener("change", update);
+      else mq.removeListener(update);
+    };
+  }, [breakpointPx]);
+
+  return isMobile;
+}
+
 export default function SystemConnectors() {
   const reduceMotion = useReducedMotion();
+  const isMobile = useIsMobile(640);
+
   const [hovered, setHovered] = useState(false);
+
+  // Desktop pulses only
   const [pulses, setPulses] = useState([]);
 
-  const rowRef = useRef(null);
-  const chipRefs = useRef([]);
-  const hubRef = useRef(null);
+  const shellRef = useRef(null);
 
-  const [size, setSize] = useState({ w: 640, h: 140 });
-  const [starts, setStarts] = useState([]);
-  const [end, setEnd] = useState({ x: 520, y: 70 });
+  // Desktop refs
+  const desktopRowRef = useRef(null);
+  const desktopChipRefs = useRef([]);
+  const desktopHubRef = useRef(null);
 
-  const makePath = useMemo(() => {
+  // Mobile refs
+  const mobileWrapRef = useRef(null);
+  const mobileChipRefs = useRef([]);
+  const mobileHubRef = useRef(null);
+
+  // Shared SVG viewBox size
+  const [size, setSize] = useState({ w: 640, h: 220 });
+
+  // Desktop geometry
+  const [desktopStarts, setDesktopStarts] = useState([]);
+  const [desktopEnd, setDesktopEnd] = useState({ x: 520, y: 70 });
+
+  // Mobile geometry (two vertical lines only)
+  const [mobileGeom, setMobileGeom] = useState({
+    ready: false,
+    xApi: 0,
+    xWebhook: 0,
+    yStart: 0,
+    yEnd: 0,
+  });
+
+  const DOT = 9;
+
+  // Desktop path builder
+  const makeDesktopPath = useMemo(() => {
     return (s, e) => {
       if (!s || !e) return "";
-      const dx = Math.max(60, e.x - s.x);
+      const dx = Math.max(80, e.x - s.x);
       const c1x = s.x + dx * 0.45;
       const c2x = s.x + dx * 0.82;
       return `M ${s.x} ${s.y} C ${c1x} ${s.y}, ${c2x} ${e.y}, ${e.x} ${e.y}`;
     };
   }, []);
 
-  const paths = useMemo(() => {
-    if (!starts.length) return [];
-    return starts.map((s) => makePath(s, end));
-  }, [starts, end, makePath]);
+  const desktopPaths = useMemo(() => {
+    if (!desktopStarts.length) return [];
+    return desktopStarts.map((s) => makeDesktopPath(s, desktopEnd));
+  }, [desktopStarts, desktopEnd, makeDesktopPath]);
 
+  // Measure layout + compute geometry
   useLayoutEffect(() => {
-    const calc = () => {
-      if (!rowRef.current || !hubRef.current) return;
+    const calcDesktop = () => {
+      if (!desktopRowRef.current || !desktopHubRef.current) return;
 
-      const row = rowRef.current.getBoundingClientRect();
-      const hub = hubRef.current.getBoundingClientRect();
+      const row = desktopRowRef.current.getBoundingClientRect();
+      const hub = desktopHubRef.current.getBoundingClientRect();
 
       const w = Math.max(1, Math.round(row.width));
       const h = Math.max(1, Math.round(row.height));
 
-      const newStarts = chipRefs.current
+      const starts = desktopChipRefs.current
         .slice(0, tools.length)
         .filter(Boolean)
         .map((el) => {
           const r = el.getBoundingClientRect();
           return {
-            x: r.left - row.left + r.width,
+            x: r.left - row.left + r.width, // right edge of chip
             y: r.top - row.top + r.height / 2,
           };
         });
 
-      const newEnd = {
+      const end = {
         x: clamp(hub.left - row.left - 12, 0, w),
         y: clamp(hub.top - row.top + hub.height / 2, 0, h),
       };
 
       setSize({ w, h });
-      setStarts(newStarts);
-      setEnd(newEnd);
+      setDesktopStarts(starts);
+      setDesktopEnd(end);
+    };
+
+    const calcMobile = () => {
+      if (!mobileWrapRef.current || !mobileHubRef.current) return;
+
+      const wrap = mobileWrapRef.current.getBoundingClientRect();
+      const hub = mobileHubRef.current.getBoundingClientRect();
+
+      const w = Math.max(1, Math.round(wrap.width));
+      const h = Math.max(1, Math.round(wrap.height));
+
+      const rects = mobileChipRefs.current
+        .slice(0, tools.length)
+        .filter(Boolean)
+        .map((el) => el.getBoundingClientRect());
+
+      // Indices: 2 = APIs, 3 = Webhooks
+      const apiRect = rects[2];
+      const hookRect = rects[3];
+
+      setSize({ w, h });
+
+      if (!apiRect || !hookRect) {
+        setMobileGeom((g) => ({ ...g, ready: false }));
+        return;
+      }
+
+      const xApi = clamp(apiRect.left - wrap.left + apiRect.width / 2, 0, w);
+      const xWebhook = clamp(hookRect.left - wrap.left + hookRect.width / 2, 0, w);
+
+      // Start just under the bottom row (APIs/Webhooks)
+      const yStart = clamp(
+        Math.round(Math.max(apiRect.bottom, hookRect.bottom) - wrap.top + 6),
+        0,
+        h
+      );
+
+      // End a short distance above the hub top (short lines)
+      let yEnd = clamp(Math.round(hub.top - wrap.top - 12), 0, h);
+
+      // Ensure a minimum visible line length
+      if (yEnd < yStart + 18) yEnd = clamp(yStart + 32, 0, h);
+
+      setMobileGeom({
+        ready: true,
+        xApi,
+        xWebhook,
+        yStart,
+        yEnd,
+      });
+    };
+
+    const calc = () => {
+      if (isMobile) calcMobile();
+      else calcDesktop();
     };
 
     calc();
 
     const ro = new ResizeObserver(calc);
-    ro.observe(rowRef.current);
-    ro.observe(hubRef.current);
+    if (isMobile) {
+      if (mobileWrapRef.current) ro.observe(mobileWrapRef.current);
+      if (mobileHubRef.current) ro.observe(mobileHubRef.current);
+    } else {
+      if (desktopRowRef.current) ro.observe(desktopRowRef.current);
+      if (desktopHubRef.current) ro.observe(desktopHubRef.current);
+    }
 
     window.addEventListener("resize", calc);
     return () => {
       ro.disconnect();
       window.removeEventListener("resize", calc);
     };
-  }, []);
+  }, [isMobile]);
 
+  // Desktop pulse scheduling
   useEffect(() => {
+    if (isMobile) return;
     if (reduceMotion) return;
-    if (starts.length !== tools.length) return;
+    if (desktopStarts.length !== tools.length) return;
 
     let cancelled = false;
 
@@ -117,10 +228,10 @@ export default function SystemConnectors() {
     return () => {
       cancelled = true;
     };
-  }, [hovered, reduceMotion, starts.length]);
+  }, [hovered, reduceMotion, desktopStarts.length, isMobile]);
 
   const hubPing = () => {
-    const el = rowRef.current?.querySelector?.("[data-hub]");
+    const el = shellRef.current?.querySelector?.("[data-hub]");
     if (!el) return;
     el.classList.remove("nh-hub-ping");
     el.offsetHeight;
@@ -128,13 +239,12 @@ export default function SystemConnectors() {
     window.setTimeout(() => el.classList.remove("nh-hub-ping"), 420);
   };
 
-  const DOT = 10;
-
   return (
     <div
+      ref={shellRef}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      className="w-full max-w-[640px] mt-6 sm:mt-8"
+      className="w-full max-w-[720px] mt-6 sm:mt-8"
       aria-label="System connectors visual"
     >
       <div className="relative rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-md shadow-[0_10px_40px_rgba(0,0,0,0.25)] overflow-hidden">
@@ -143,108 +253,218 @@ export default function SystemConnectors() {
           <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.06)_1px,transparent_1px)] bg-[size:24px_24px]" />
         </div>
 
-        {/* IMPORTANT: slightly tighter spacing on mobile so the caption doesn't get clipped */}
-        <div ref={rowRef} className="relative flex items-stretch gap-4 sm:gap-6 px-4 sm:px-5 py-3 sm:py-4">
-          {/* Lines */}
-          <svg
-            className="pointer-events-none absolute inset-0 w-full h-full"
-            viewBox={`0 0 ${size.w} ${size.h}`}
-            preserveAspectRatio="none"
-            aria-hidden="true"
-          >
-            {paths.map((d, i) => (
-              <path
-                key={i}
-                d={d}
-                stroke="rgba(255,255,255,0.10)"
-                strokeWidth="1.25"
-                fill="none"
-              />
-            ))}
-            {/* join dot */}
-            <circle cx={end.x} cy={end.y} r="4.5" fill="rgba(26,111,181,0.55)" />
-          </svg>
+        {isMobile ? (
+          // MOBILE
+          <div ref={mobileWrapRef} className="relative px-4 pt-4 pb-5">
+            <svg
+              className="pointer-events-none absolute inset-0 w-full h-full"
+              viewBox={`0 0 ${size.w} ${size.h}`}
+              preserveAspectRatio="none"
+              aria-hidden="true"
+            >
+              {mobileGeom.ready && (
+                <>
+                  {/* Two short vertical lines under APIs + Webhooks */}
+                  <line
+                    x1={mobileGeom.xApi}
+                    y1={mobileGeom.yStart}
+                    x2={mobileGeom.xApi}
+                    y2={mobileGeom.yEnd}
+                    stroke="rgba(255,255,255,0.16)"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                  />
+                  <line
+                    x1={mobileGeom.xWebhook}
+                    y1={mobileGeom.yStart}
+                    x2={mobileGeom.xWebhook}
+                    y2={mobileGeom.yEnd}
+                    stroke="rgba(255,255,255,0.16)"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                  />
 
-          {/* Chips */}
-          <div className="flex flex-col gap-2">
-            {tools.map((t, idx) => (
-              <div
-                key={t.label}
-                ref={(el) => (chipRefs.current[idx] = el)}
-                className="group flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2"
-              >
-                <div className="w-7 h-7 rounded-lg border border-white/10 bg-white/[0.04] flex items-center justify-center">
-                  <t.Icon className="w-4 h-4 text-white/70" />
+                  {/* Flow dots that travel only on those vertical lines */}
+                  {!reduceMotion && (
+                    <>
+                      <motion.circle
+                        key={`api-dot-${mobileGeom.xApi}-${mobileGeom.yStart}-${mobileGeom.yEnd}`}
+                        cx={mobileGeom.xApi}
+                        r={DOT / 2}
+                        fill="rgb(26,111,181)"
+                        initial={{ cy: mobileGeom.yStart, opacity: 0 }}
+                        animate={{
+                          cy: mobileGeom.yEnd,
+                          opacity: [0, 1, 1, 0],
+                        }}
+                        transition={{
+                          duration: hovered ? 0.65 : 0.85,
+                          ease: "easeInOut",
+                          repeat: Infinity,
+                          repeatDelay: hovered ? 0.25 : 0.45,
+                        }}
+                        onUpdate={(latest) => {
+                          if (typeof latest?.cy === "number" && latest.cy >= mobileGeom.yEnd - 1) {
+                            hubPing();
+                          }
+                        }}
+                      />
+                      <motion.circle
+                        key={`hook-dot-${mobileGeom.xWebhook}-${mobileGeom.yStart}-${mobileGeom.yEnd}`}
+                        cx={mobileGeom.xWebhook}
+                        r={DOT / 2}
+                        fill="rgb(26,111,181)"
+                        initial={{ cy: mobileGeom.yStart, opacity: 0 }}
+                        animate={{
+                          cy: mobileGeom.yEnd,
+                          opacity: [0, 1, 1, 0],
+                        }}
+                        transition={{
+                          duration: hovered ? 0.65 : 0.85,
+                          ease: "easeInOut",
+                          repeat: Infinity,
+                          repeatDelay: hovered ? 0.25 : 0.45,
+                          delay: 0.18,
+                        }}
+                        onUpdate={(latest) => {
+                          if (typeof latest?.cy === "number" && latest.cy >= mobileGeom.yEnd - 1) {
+                            hubPing();
+                          }
+                        }}
+                      />
+                    </>
+                  )}
+                </>
+              )}
+            </svg>
+
+            {/* Chips grid */}
+            <div className="relative z-10 grid grid-cols-2 gap-3">
+              {tools.map((t, idx) => (
+                <div
+                  key={t.label}
+                  ref={(el) => (mobileChipRefs.current[idx] = el)}
+                  className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-3"
+                >
+                  <div className="w-8 h-8 rounded-lg border border-white/10 bg-white/[0.04] flex items-center justify-center">
+                    <t.Icon className="w-4 h-4 text-white/70" />
+                  </div>
+                  <div className="text-[12px] font-semibold text-white/75 whitespace-nowrap">
+                    {t.label}
+                  </div>
                 </div>
-                <div className="text-[12px] font-semibold text-white/75 whitespace-nowrap">
-                  {t.label}
-                </div>
+              ))}
+            </div>
+
+            {/* Hub full width */}
+            <div
+              ref={mobileHubRef}
+              data-hub
+              className="nh-hub relative z-10 mt-6 w-full rounded-2xl border border-[#1a6fb5]/35 bg-[#0a1628]/40 px-4 py-6 flex flex-col items-center justify-center text-center"
+            >
+              <div className="w-11 h-11 rounded-2xl bg-[#1a6fb5]/10 border border-[#1a6fb5]/25 flex items-center justify-center mb-2">
+                <Network className="w-5 h-5 text-[#6fb7ff]" />
               </div>
-            ))}
-          </div>
-
-          {/* spacer column */}
-          <div className="relative flex-1" />
-
-          {/* Hub */}
-          <div
-            ref={hubRef}
-            data-hub
-            className="nh-hub relative z-10 min-w-[200px] sm:min-w-[240px] rounded-2xl border border-[#1a6fb5]/35 bg-[#0a1628]/40 px-4 py-4 flex flex-col items-center justify-center text-center"
-          >
-            <div className="w-11 h-11 rounded-2xl bg-[#1a6fb5]/10 border border-[#1a6fb5]/25 flex items-center justify-center mb-2">
-              <Network className="w-5 h-5 text-[#6fb7ff]" />
+              <div className="text-white font-semibold tracking-tight">NailorHub</div>
+              <div className="text-[11px] mt-1 text-white/55 leading-tight">One connected system</div>
+              <div className="pointer-events-none absolute inset-0 rounded-2xl shadow-[0_0_0_1px_rgba(26,111,181,0.15),0_0_32px_rgba(26,111,181,0.18)]" />
             </div>
-            <div className="text-white font-semibold tracking-tight">NailorHub</div>
-            <div className="text-[11px] mt-1 text-white/55 leading-tight">
-              One connected system
-            </div>
-
-            <div className="pointer-events-none absolute inset-0 rounded-2xl shadow-[0_0_0_1px_rgba(26,111,181,0.15),0_0_32px_rgba(26,111,181,0.18)]" />
           </div>
-
-          {/* Pulses that follow the curve */}
-          {!reduceMotion &&
-            paths.length === tools.length &&
-            pulses.map((p) => {
-              const d = paths[p.fromIndex];
-              if (!d) return null;
-
-              const duration = hovered ? 1.0 : 1.25;
-
-              return (
-                <motion.div
-                  key={p.id}
-                  className="pointer-events-none absolute rounded-full bg-[#1a6fb5] shadow-[0_0_18px_rgba(26,111,181,0.65)]"
-                  style={{
-                    width: DOT,
-                    height: DOT,
-                    left: 0,
-                    top: 0,
-                    offsetPath: `path("${d}")`,
-                    WebkitOffsetPath: `path("${d}")`,
-                    offsetRotate: "0deg",
-                    WebkitOffsetRotate: "0deg",
-                    willChange: "offset-distance, opacity, transform",
-                  }}
-                  initial={{ offsetDistance: "0%", opacity: 0, scale: 0.9 }}
-                  animate={{
-                    offsetDistance: "100%",
-                    opacity: [0, 1, 1, 0],
-                    scale: [0.9, 1, 1, 0.85],
-                  }}
-                  transition={{ duration, ease: "easeInOut" }}
-                  onAnimationComplete={() => {
-                    setPulses((prev) => prev.filter((x) => x.id !== p.id));
-                    hubPing();
-                  }}
+        ) : (
+          // DESKTOP
+          <div ref={desktopRowRef} className="relative flex items-stretch gap-6 px-5 py-4">
+            <svg
+              className="pointer-events-none absolute inset-0 w-full h-full"
+              viewBox={`0 0 ${size.w} ${size.h}`}
+              preserveAspectRatio="none"
+              aria-hidden="true"
+            >
+              {desktopPaths.map((d, i) => (
+                <path
+                  key={i}
+                  d={d}
+                  stroke="rgba(255,255,255,0.10)"
+                  strokeWidth="1.25"
+                  fill="none"
+                  strokeLinecap="round"
                 />
-              );
-            })}
-        </div>
+              ))}
+              <circle cx={desktopEnd.x} cy={desktopEnd.y} r="4.5" fill="rgba(26,111,181,0.55)" />
+            </svg>
+
+            <div className="flex flex-col gap-2">
+              {tools.map((t, idx) => (
+                <div
+                  key={t.label}
+                  ref={(el) => (desktopChipRefs.current[idx] = el)}
+                  className="group flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2"
+                >
+                  <div className="w-7 h-7 rounded-lg border border-white/10 bg-white/[0.04] flex items-center justify-center">
+                    <t.Icon className="w-4 h-4 text-white/70" />
+                  </div>
+                  <div className="text-[12px] font-semibold text-white/75 whitespace-nowrap">
+                    {t.label}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="relative flex-1" />
+
+            <div
+              ref={desktopHubRef}
+              data-hub
+              className="nh-hub relative z-10 min-w-[240px] rounded-2xl border border-[#1a6fb5]/35 bg-[#0a1628]/40 px-4 py-4 flex flex-col items-center justify-center text-center"
+            >
+              <div className="w-11 h-11 rounded-2xl bg-[#1a6fb5]/10 border border-[#1a6fb5]/25 flex items-center justify-center mb-2">
+                <Network className="w-5 h-5 text-[#6fb7ff]" />
+              </div>
+              <div className="text-white font-semibold tracking-tight">NailorHub</div>
+              <div className="text-[11px] mt-1 text-white/55 leading-tight">One connected system</div>
+              <div className="pointer-events-none absolute inset-0 rounded-2xl shadow-[0_0_0_1px_rgba(26,111,181,0.15),0_0_32px_rgba(26,111,181,0.18)]" />
+            </div>
+
+            {!reduceMotion &&
+              desktopPaths.length === tools.length &&
+              pulses.map((p) => {
+                const d = desktopPaths[p.fromIndex];
+                if (!d) return null;
+
+                const duration = hovered ? 1.0 : 1.25;
+
+                return (
+                  <motion.div
+                    key={p.id}
+                    className="pointer-events-none absolute rounded-full bg-[#1a6fb5] shadow-[0_0_18px_rgba(26,111,181,0.65)]"
+                    style={{
+                      width: DOT,
+                      height: DOT,
+                      left: 0,
+                      top: 0,
+                      offsetPath: `path("${d}")`,
+                      WebkitOffsetPath: `path("${d}")`,
+                      offsetRotate: "0deg",
+                      WebkitOffsetRotate: "0deg",
+                      willChange: "offset-distance, opacity, transform",
+                    }}
+                    initial={{ offsetDistance: "0%", opacity: 0, scale: 0.9 }}
+                    animate={{
+                      offsetDistance: "100%",
+                      opacity: [0, 1, 1, 0],
+                      scale: [0.9, 1, 1, 0.85],
+                    }}
+                    transition={{ duration, ease: "easeInOut" }}
+                    onAnimationComplete={() => {
+                      setPulses((prev) => prev.filter((x) => x.id !== p.id));
+                      hubPing();
+                    }}
+                  />
+                );
+              })}
+          </div>
+        )}
       </div>
 
-      {/* Caption: smaller on mobile + padding so it never clips */}
       <div className="text-center text-[11px] sm:text-[12px] text-white/60 mt-2 pb-2">
         We connect your tools into one workflow
       </div>
