@@ -19,7 +19,7 @@ export default function Hero() {
   };
 
   return (
-    <section className="relative min-h-[100svh] flex flex-col overflow-visible bg-[#0a1628] pb-[calc(env(safe-area-inset-bottom)+16px)]">
+    <section className="relative min-h-[100svh] flex flex-col overflow-visible bg-[#0a1628] pb-[calc(env(safe-area-inset-bottom)+16px)] md:pb-0">
       {/* Tech background */}
       <div
         className="absolute inset-0 opacity-10 hidden md:block"
@@ -77,7 +77,7 @@ export default function Hero() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
-            className="text-gray-300 mb-7 leading-[1.6] max-w-[640px]"
+            className="text-gray-300 mb-7 leading-[1.6] max-w-[640px] text-[14px] sm:text-[15px]"
           >
             Built custom with no-code, low-code, and custom development so your
             workflows stay clean, connected, and visible.
@@ -121,7 +121,7 @@ export default function Hero() {
       </div>
 
       {/* Credibility items - anchored to bottom */}
-      <div className="relative w-full border-t border-white/10 bg-white/[0.02] backdrop-blur-sm opacity-70">
+      <div className="relative w-full mt-auto border-t border-white/10 bg-white/[0.02] backdrop-blur-sm opacity-70">
         <div className="max-w-7xl mx-auto px-4 lg:px-8 py-3 md:py-6">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-0 lg:divide-x divide-white/10">
             {credibilityItems.map((item, i) => (
