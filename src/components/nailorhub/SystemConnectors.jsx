@@ -134,105 +134,154 @@ export default function SystemConnectors() {
     <div
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      className="w-full max-w-[640px] mt-7 sm:mt-8"
+      className="w-full mt-7 sm:mt-8"
       aria-label="System connectors visual"
     >
-      <div className="relative rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-md shadow-[0_10px_40px_rgba(0,0,0,0.25)] overflow-hidden">
-        <div className="absolute inset-0 opacity-[0.12] pointer-events-none [mask-image:radial-gradient(ellipse_at_center,black,transparent_65%)]">
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.06)_1px,transparent_1px)] bg-[size:24px_24px]" />
+      {/* MOBILE (stacked, no SVG, no overflow) */}
+      <div className="sm:hidden w-full">
+        <div className="relative rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-md shadow-[0_10px_40px_rgba(0,0,0,0.25)] overflow-hidden">
+          <div className="absolute inset-0 opacity-[0.12] pointer-events-none [mask-image:radial-gradient(ellipse_at_center,black,transparent_65%)]">
+            <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.06)_1px,transparent_1px)] bg-[size:24px_24px]" />
+          </div>
+
+          <div className="relative p-4">
+            <div className="grid grid-cols-2 gap-2">
+              {tools.map((t) => (
+                <div
+                  key={t.label}
+                  className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2"
+                >
+                  <div className="w-7 h-7 rounded-lg border border-white/10 bg-white/[0.04] flex items-center justify-center">
+                    <t.Icon className="w-4 h-4 text-white/70" />
+                  </div>
+                  <div className="text-[12px] font-semibold text-white/75 whitespace-nowrap">
+                    {t.label}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-3 rounded-2xl border border-[#1a6fb5]/35 bg-[#0a1628]/40 px-4 py-4 text-center">
+              <div className="w-11 h-11 mx-auto rounded-2xl bg-[#1a6fb5]/10 border border-[#1a6fb5]/25 flex items-center justify-center mb-2">
+                <Network className="w-5 h-5 text-[#6fb7ff]" />
+              </div>
+              <div className="text-white font-semibold tracking-tight">NailorHub</div>
+              <div className="text-[11px] mt-1 text-white/55 leading-tight">
+                One connected system
+              </div>
+              <div className="pointer-events-none absolute inset-0 rounded-2xl shadow-[0_0_0_1px_rgba(26,111,181,0.10)]" />
+            </div>
+          </div>
         </div>
 
-        <div ref={rowRef} className="relative flex items-stretch gap-6 px-5 py-4">
-          <svg
-            className="pointer-events-none absolute inset-0 w-full h-full"
-            viewBox={`0 0 ${size.w} ${size.h}`}
-            preserveAspectRatio="none"
-            aria-hidden="true"
-          >
-            {paths.map((d, i) => (
-              <path
-                key={i}
-                d={d}
-                stroke="rgba(255,255,255,0.10)"
-                strokeWidth="1.25"
-                fill="none"
-              />
-            ))}
-            <circle cx={end.x} cy={end.y} r="4.5" fill="rgba(26,111,181,0.55)" />
-          </svg>
-
-          <div className="flex flex-col gap-2">
-            {tools.map((t, idx) => (
-              <div
-                key={t.label}
-                ref={(el) => (chipRefs.current[idx] = el)}
-                className="group flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2"
-              >
-                <div className="w-7 h-7 rounded-lg border border-white/10 bg-white/[0.04] flex items-center justify-center">
-                  <t.Icon className="w-4 h-4 text-white/70" />
-                </div>
-                <div className="text-[12px] font-semibold text-white/75 whitespace-nowrap">
-                  {t.label}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="relative flex-1" />
-
-          <div
-            ref={hubRef}
-            data-hub
-            className="nh-hub relative z-10 min-w-[220px] sm:min-w-[240px] rounded-2xl border border-[#1a6fb5]/35 bg-[#0a1628]/40 px-4 py-4 flex flex-col items-center justify-center text-center"
-          >
-            <div className="w-11 h-11 rounded-2xl bg-[#1a6fb5]/10 border border-[#1a6fb5]/25 flex items-center justify-center mb-2">
-              <Network className="w-5 h-5 text-[#6fb7ff]" />
-            </div>
-            <div className="text-white font-semibold tracking-tight">NailorHub</div>
-            <div className="text-[11px] mt-1 text-white/55 leading-tight">
-              Connected workflow
-            </div>
-            <div className="pointer-events-none absolute inset-0 rounded-2xl shadow-[0_0_0_1px_rgba(26,111,181,0.15),0_0_32px_rgba(26,111,181,0.18)]" />
-          </div>
-
-          {!reduceMotion &&
-            paths.length === tools.length &&
-            pulses.map((p) => {
-              const d = paths[p.fromIndex];
-              if (!d) return null;
-
-              const duration = hovered ? 1.0 : 1.25;
-
-              return (
-                <motion.div
-                  key={p.id}
-                  className="pointer-events-none absolute rounded-full bg-[#1a6fb5] shadow-[0_0_18px_rgba(26,111,181,0.65)]"
-                  style={{
-                    width: DOT,
-                    height: DOT,
-                    left: 0,
-                    top: 0,
-                    offsetPath: `path("${d}")`,
-                    WebkitOffsetPath: `path("${d}")`,
-                    offsetRotate: "0deg",
-                    WebkitOffsetRotate: "0deg",
-                    willChange: "offset-distance, opacity, transform",
-                  }}
-                  initial={{ offsetDistance: "0%", opacity: 0, scale: 0.9 }}
-                  animate={{ offsetDistance: "100%", opacity: [0, 1, 1, 0], scale: [0.9, 1, 1, 0.85] }}
-                  transition={{ duration, ease: "easeInOut" }}
-                  onAnimationComplete={() => {
-                    setPulses((prev) => prev.filter((x) => x.id !== p.id));
-                    hubPing();
-                  }}
-                />
-              );
-            })}
+        <div className="text-center text-[12px] text-white/60 mt-3">
+          We connect your tools into one workflow
         </div>
       </div>
 
-      <div className="text-center text-[12px] text-white/60 mt-3">
-        We connect your tools into one workflow
+      {/* DESKTOP (your existing animated version) */}
+      <div className="hidden sm:block w-full max-w-[640px]">
+        <div className="relative rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-md shadow-[0_10px_40px_rgba(0,0,0,0.25)] overflow-hidden">
+          <div className="absolute inset-0 opacity-[0.12] pointer-events-none [mask-image:radial-gradient(ellipse_at_center,black,transparent_65%)]">
+            <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.06)_1px,transparent_1px)] bg-[size:24px_24px]" />
+          </div>
+
+          <div ref={rowRef} className="relative flex items-stretch gap-6 px-5 py-4">
+            <svg
+              className="pointer-events-none absolute inset-0 w-full h-full"
+              viewBox={`0 0 ${size.w} ${size.h}`}
+              preserveAspectRatio="none"
+              aria-hidden="true"
+            >
+              {paths.map((d, i) => (
+                <path
+                  key={i}
+                  d={d}
+                  stroke="rgba(255,255,255,0.10)"
+                  strokeWidth="1.25"
+                  fill="none"
+                />
+              ))}
+              <circle cx={end.x} cy={end.y} r="4.5" fill="rgba(26,111,181,0.55)" />
+            </svg>
+
+            <div className="flex flex-col gap-2">
+              {tools.map((t, idx) => (
+                <div
+                  key={t.label}
+                  ref={(el) => (chipRefs.current[idx] = el)}
+                  className="group flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2"
+                >
+                  <div className="w-7 h-7 rounded-lg border border-white/10 bg-white/[0.04] flex items-center justify-center">
+                    <t.Icon className="w-4 h-4 text-white/70" />
+                  </div>
+                  <div className="text-[12px] font-semibold text-white/75 whitespace-nowrap">
+                    {t.label}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="relative flex-1" />
+
+            <div
+              ref={hubRef}
+              data-hub
+              className="nh-hub relative z-10 min-w-[220px] sm:min-w-[240px] rounded-2xl border border-[#1a6fb5]/35 bg-[#0a1628]/40 px-4 py-4 flex flex-col items-center justify-center text-center"
+            >
+              <div className="w-11 h-11 rounded-2xl bg-[#1a6fb5]/10 border border-[#1a6fb5]/25 flex items-center justify-center mb-2">
+                <Network className="w-5 h-5 text-[#6fb7ff]" />
+              </div>
+              <div className="text-white font-semibold tracking-tight">NailorHub</div>
+              <div className="text-[11px] mt-1 text-white/55 leading-tight">
+                Connected workflow
+              </div>
+              <div className="pointer-events-none absolute inset-0 rounded-2xl shadow-[0_0_0_1px_rgba(26,111,181,0.15),0_0_32px_rgba(26,111,181,0.18)]" />
+            </div>
+
+            {!reduceMotion &&
+              paths.length === tools.length &&
+              pulses.map((p) => {
+                const d = paths[p.fromIndex];
+                if (!d) return null;
+
+                const duration = hovered ? 1.0 : 1.25;
+
+                return (
+                  <motion.div
+                    key={p.id}
+                    className="pointer-events-none absolute rounded-full bg-[#1a6fb5] shadow-[0_0_18px_rgba(26,111,181,0.65)]"
+                    style={{
+                      width: DOT,
+                      height: DOT,
+                      left: 0,
+                      top: 0,
+                      offsetPath: `path("${d}")`,
+                      WebkitOffsetPath: `path("${d}")`,
+                      offsetRotate: "0deg",
+                      WebkitOffsetRotate: "0deg",
+                      willChange: "offset-distance, opacity, transform",
+                    }}
+                    initial={{ offsetDistance: "0%", opacity: 0, scale: 0.9 }}
+                    animate={{
+                      offsetDistance: "100%",
+                      opacity: [0, 1, 1, 0],
+                      scale: [0.9, 1, 1, 0.85],
+                    }}
+                    transition={{ duration, ease: "easeInOut" }}
+                    onAnimationComplete={() => {
+                      setPulses((prev) => prev.filter((x) => x.id !== p.id));
+                      hubPing();
+                    }}
+                  />
+                );
+              })}
+          </div>
+        </div>
+
+        <div className="text-center text-[12px] text-white/60 mt-3">
+          We connect your tools into one workflow
+        </div>
       </div>
 
       <style>{`
