@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Settings, Zap, Layers, BarChart3 } from "lucide-react";
 import { motion } from "framer-motion";
 import DataFlowGrid from "./DataFlowGrid";
+import SystemConnectors from "./SystemConnectors";
 
 const credibilityItems = [
 { icon: Settings, text: "Built for operations" },
@@ -100,6 +101,16 @@ export default function Hero() {
 
               Explore Services
             </Button>
+          </motion.div>
+
+          {/* System connectors visual */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.55, ease: "easeOut" }}
+            className="w-full flex justify-center"
+          >
+            <SystemConnectors />
           </motion.div>
         </div>
       </div>
