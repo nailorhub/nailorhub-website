@@ -356,19 +356,24 @@ export default function SystemConnectors() {
               ))}
             </div>
 
-            {/* Hub full width */}
-            <div
+                        {/* Hub full width */}
+                        <div
               ref={mobileHubRef}
               data-hub
-              className="nh-hub relative z-10 mt-6 w-full rounded-2xl border border-[#1a6fb5]/35 bg-[#0a1628]/40 px-4 py-6 flex flex-col items-center justify-center text-center"
+              className="nh-hub relative z-10 mt-6 w-full rounded-2xl border border-[#1a6fb5]/35 bg-[#0a1628]/40 px-4 py-4 flex flex-col items-center justify-center text-center"
             >
-              <div className="w-11 h-11 rounded-2xl bg-[#1a6fb5]/10 border border-[#1a6fb5]/25 flex items-center justify-center mb-2">
-                <Network className="w-5 h-5 text-[#6fb7ff]" />
+              <div className="w-8 h-8 rounded-xl bg-[#1a6fb5]/10 border border-[#1a6fb5]/25 flex items-center justify-center mb-2">
+                <Network className="w-4 h-4 text-[#6fb7ff]" />
               </div>
+
               <div className="text-white font-semibold tracking-tight">NailorHub</div>
-              <div className="text-[11px] mt-1 text-white/55 leading-tight">One connected system</div>
+              <div className="text-[11px] mt-0.5 text-white/55 leading-tight">
+                One connected system
+              </div>
+
               <div className="pointer-events-none absolute inset-0 rounded-2xl shadow-[0_0_0_1px_rgba(26,111,181,0.15),0_0_32px_rgba(26,111,181,0.18)]" />
             </div>
+
           </div>
         ) : (
           // DESKTOP
