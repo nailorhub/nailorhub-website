@@ -43,7 +43,7 @@ export default function Hero() {
       <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-[#1a6fb5]/[0.04] rounded-full blur-3xl" />
 
       {/* Centered content */}
-      <div className="relative flex-1 flex flex-col items-center justify-center max-w-3xl mx-auto w-full px-6 lg:px-8 pt-10 sm:pt-16 md:pt-12 pb-6">
+      <div className="relative flex-1 flex flex-col items-center justify-center max-w-3xl mx-auto w-full px-6 lg:px-8 pt-12 sm:pt-16 md:pt-12 pb-6">
         {/* Text content - centered */}
         <div className="flex flex-col items-center justify-center text-center w-full px-6 md:px-0">
           {/* Badge */}
