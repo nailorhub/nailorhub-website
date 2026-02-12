@@ -39,20 +39,20 @@ export default function FloatingCTA() {
             </Button>
           </motion.div>
 
-          {/* Mobile: sticky bottom bar */}
-          <motion.div
-            initial={{ opacity: 0, y: 100 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 100 }}
-            className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 p-4 shadow-[0_-2px_12px_rgba(0,0,0,0.08)]"
-          >
-            <Button
-              onClick={scrollToContact}
-              className="w-full bg-[#1a6fb5] hover:bg-[#155d99] text-white text-[15px] font-semibold h-12 rounded-xl shadow-lg"
-            >
-              Request a Project
-            </Button>
-          </motion.div>
+         {/* Mobile: floating bottom button (no bar) */}
+<motion.div
+  initial={{ opacity: 0, y: 20 }}
+  animate={{ opacity: 1, y: 0 }}
+  exit={{ opacity: 0, y: 20 }}
+  className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-40 px-4 w-full"
+>
+  <Button
+    onClick={scrollToContact}
+    className="w-full max-w-[520px] mx-auto bg-[#1a6fb5] hover:bg-[#155d99] text-white text-[15px] font-semibold h-12 rounded-xl shadow-xl shadow-[#1a6fb5]/25"
+  >
+    Request a Project
+  </Button>
+</motion.div>
         </>
       )}
     </AnimatePresence>
