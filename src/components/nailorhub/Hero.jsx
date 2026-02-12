@@ -19,7 +19,7 @@ export default function Hero() {
   };
 
   return (
-    <section className="relative min-h-[100svh] md:min-h-screen flex flex-col overflow-hidden bg-[#0a1628]">
+    <section className="relative min-h-screen flex flex-col overflow-hidden bg-[#0a1628]">
       {/* Tech background */}
       <div
         className="absolute inset-0 opacity-10 hidden md:block"
@@ -43,7 +43,7 @@ export default function Hero() {
       <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-[#1a6fb5]/[0.04] rounded-full blur-3xl" />
 
       {/* Centered content */}
-      <div className="relative flex-1 flex flex-col items-center justify-start md:justify-center max-w-3xl mx-auto w-full px-6 lg:px-8 pt-8 md:pt-12 pb-10 md:pb-2">
+      <div className="relative flex-1 flex flex-col items-center justify-center max-w-3xl mx-auto w-full px-6 lg:px-8 pt-14 sm:pt-16 md:pt-12 pb-2">
         {/* Text content - centered */}
         <div className="flex flex-col items-center justify-center text-center w-full px-6 md:px-0">
           {/* Badge */}
@@ -112,7 +112,7 @@ export default function Hero() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.55, ease: "easeOut" }}
-            className="w-full flex justify-center pb-6"
+            className="w-full flex justify-center"
           >
             <SystemConnectors />
           </motion.div>
