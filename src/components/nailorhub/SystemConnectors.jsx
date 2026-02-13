@@ -1,11 +1,23 @@
 import React, { useEffect, useMemo, useRef, useState, useLayoutEffect } from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Database, Sheet, PlugZap, Webhook, Network } from "lucide-react";
 
-const tools = [
+const CHIP_COUNT = 4;
+
+// Rotation pool (your stack + what you do)
+const TOOL_POOL = [
   { label: "SQL Database", Icon: Database },
   { label: "Google Sheets", Icon: Sheet },
-  { label: "APIs", Icon: PlugZap },
+  { label: "MongoDB", Icon: Database },
+  { label: "Supabase", Icon: Database },
+  { label: "Azure", Icon: Network },
+  { label: "GitHub", Icon: Network },
+  { label: "Vercel", Icon: Network },
+  { label: "DigitalOcean", Icon: Network },
+  { label: "Zapier", Icon: PlugZap },
+  { label: "Pabbly", Icon: PlugZap },
+  { label: "GraphQL", Icon: PlugZap },
+  { label: "REST APIs", Icon: PlugZap },
   { label: "Webhooks", Icon: Webhook },
 ];
 
@@ -15,6 +27,15 @@ function uid() {
 
 function clamp(n, a, b) {
   return Math.max(a, Math.min(b, n));
+}
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
 }
 
 function useIsMobile(breakpointPx = 640) {
@@ -66,16 +87,78 @@ export default function SystemConnectors() {
   const [desktopStarts, setDesktopStarts] = useState([]);
   const [desktopEnd, setDesktopEnd] = useState({ x: 520, y: 70 });
 
-  // Mobile geometry (two vertical lines only)
+  // Mobile geometry (two vertical lines under bottom row chips index 2 & 3)
   const [mobileGeom, setMobileGeom] = useState({
     ready: false,
-    xApi: 0,
-    xWebhook: 0,
+    xA: 0,
+    xB: 0,
     yStart: 0,
     yEnd: 0,
   });
 
   const DOT = 9;
+
+  // Queue rotation (carryover so we never show a "lonely leftover")
+  const queueRef = useRef([]);
+  const lastSetRef = useRef("");
+
+  const [visibleTools, setVisibleTools] = useState(() => {
+    queueRef.current = shuffle(TOOL_POOL);
+    const first = queueRef.current.slice(0, CHIP_COUNT);
+    queueRef.current = queueRef.current.slice(CHIP_COUNT);
+    lastSetRef.current = first.map((t) => t.label).join("|");
+    return first;
+  });
+
+  // Rotate ALL 4 at once using carryover queue logic
+  useEffect(() => {
+    if (reduceMotion) return;
+
+    const interval = window.setInterval(() => {
+      if (hovered) return;
+
+      setVisibleTools(() => {
+        // If fewer than 4 remain, carry them into next cycle and top up with fresh shuffled items
+        if (queueRef.current.length < CHIP_COUNT) {
+          let nextBatch = [...queueRef.current]; // 0..3 items carried
+
+          while (nextBatch.length < CHIP_COUNT) {
+            const fresh = shuffle(TOOL_POOL);
+            const filtered = fresh.filter(
+              (t) => !nextBatch.some((x) => x.label === t.label)
+            );
+            nextBatch = nextBatch.concat(filtered.slice(0, CHIP_COUNT - nextBatch.length));
+          }
+
+          // Build a new queue excluding what we just used
+          const usedLabels = new Set(nextBatch.map((t) => t.label));
+          queueRef.current = shuffle(TOOL_POOL).filter((t) => !usedLabels.has(t.label));
+
+          const sig = nextBatch.map((t) => t.label).join("|");
+          lastSetRef.current = sig;
+          return nextBatch;
+        }
+
+        // Normal case: take next 4
+        const next = queueRef.current.slice(0, CHIP_COUNT);
+        queueRef.current = queueRef.current.slice(CHIP_COUNT);
+
+        // Prevent exact same 4 twice in a row
+        const sig = next.map((t) => t.label).join("|");
+        if (sig === lastSetRef.current && queueRef.current.length >= CHIP_COUNT) {
+          const alt = queueRef.current.slice(0, CHIP_COUNT);
+          queueRef.current = queueRef.current.slice(CHIP_COUNT).concat(next);
+          lastSetRef.current = alt.map((t) => t.label).join("|");
+          return alt;
+        }
+
+        lastSetRef.current = sig;
+        return next;
+      });
+    }, 2400);
+
+    return () => window.clearInterval(interval);
+  }, [reduceMotion, hovered]);
 
   // Desktop path builder
   const makeDesktopPath = useMemo(() => {
@@ -105,7 +188,7 @@ export default function SystemConnectors() {
       const h = Math.max(1, Math.round(row.height));
 
       const starts = desktopChipRefs.current
-        .slice(0, tools.length)
+        .slice(0, CHIP_COUNT)
         .filter(Boolean)
         .map((el) => {
           const r = el.getBoundingClientRect();
@@ -135,41 +218,39 @@ export default function SystemConnectors() {
       const h = Math.max(1, Math.round(wrap.height));
 
       const rects = mobileChipRefs.current
-        .slice(0, tools.length)
+        .slice(0, CHIP_COUNT)
         .filter(Boolean)
         .map((el) => el.getBoundingClientRect());
 
-      // Indices: 2 = APIs, 3 = Webhooks
-      const apiRect = rects[2];
-      const hookRect = rects[3];
+      // Bottom row chips in a 2-col grid are indices 2 and 3
+      const aRect = rects[2];
+      const bRect = rects[3];
 
       setSize({ w, h });
 
-      if (!apiRect || !hookRect) {
+      if (!aRect || !bRect) {
         setMobileGeom((g) => ({ ...g, ready: false }));
         return;
       }
 
-      const xApi = clamp(apiRect.left - wrap.left + apiRect.width / 2, 0, w);
-      const xWebhook = clamp(hookRect.left - wrap.left + hookRect.width / 2, 0, w);
+      const xA = clamp(aRect.left - wrap.left + aRect.width / 2, 0, w);
+      const xB = clamp(bRect.left - wrap.left + bRect.width / 2, 0, w);
 
-      // Start just under the bottom row (APIs/Webhooks)
+      // Start just under the bottom row
       const yStart = clamp(
-        Math.round(Math.max(apiRect.bottom, hookRect.bottom) - wrap.top + 6),
+        Math.round(Math.max(aRect.bottom, bRect.bottom) - wrap.top + 6),
         0,
         h
       );
 
-      // End a short distance above the hub top (short lines)
+      // End a short distance above the hub top
       let yEnd = clamp(Math.round(hub.top - wrap.top - 12), 0, h);
-
-      // Ensure a minimum visible line length
       if (yEnd < yStart + 18) yEnd = clamp(yStart + 32, 0, h);
 
       setMobileGeom({
         ready: true,
-        xApi,
-        xWebhook,
+        xA,
+        xB,
         yStart,
         yEnd,
       });
@@ -196,13 +277,13 @@ export default function SystemConnectors() {
       ro.disconnect();
       window.removeEventListener("resize", calc);
     };
-  }, [isMobile]);
+  }, [isMobile, visibleTools]);
 
   // Desktop pulse scheduling
   useEffect(() => {
     if (isMobile) return;
     if (reduceMotion) return;
-    if (desktopStarts.length !== tools.length) return;
+    if (desktopStarts.length !== CHIP_COUNT) return;
 
     let cancelled = false;
 
@@ -216,7 +297,7 @@ export default function SystemConnectors() {
       window.setTimeout(() => {
         if (cancelled) return;
 
-        const fromIndex = Math.floor(Math.random() * tools.length);
+        const fromIndex = Math.floor(Math.random() * CHIP_COUNT);
         const id = uid();
         setPulses((prev) => [...prev, { id, fromIndex }]);
 
@@ -264,39 +345,35 @@ export default function SystemConnectors() {
             >
               {mobileGeom.ready && (
                 <>
-                  {/* Two short vertical lines under APIs + Webhooks */}
+                  {/* Two short vertical lines under bottom row chips */}
                   <line
-                    x1={mobileGeom.xApi}
+                    x1={mobileGeom.xA}
                     y1={mobileGeom.yStart}
-                    x2={mobileGeom.xApi}
+                    x2={mobileGeom.xA}
                     y2={mobileGeom.yEnd}
                     stroke="rgba(255,255,255,0.16)"
                     strokeWidth="1.5"
                     strokeLinecap="round"
                   />
                   <line
-                    x1={mobileGeom.xWebhook}
+                    x1={mobileGeom.xB}
                     y1={mobileGeom.yStart}
-                    x2={mobileGeom.xWebhook}
+                    x2={mobileGeom.xB}
                     y2={mobileGeom.yEnd}
                     stroke="rgba(255,255,255,0.16)"
                     strokeWidth="1.5"
                     strokeLinecap="round"
                   />
 
-                  {/* Flow dots that travel only on those vertical lines */}
                   {!reduceMotion && (
                     <>
                       <motion.circle
-                        key={`api-dot-${mobileGeom.xApi}-${mobileGeom.yStart}-${mobileGeom.yEnd}`}
-                        cx={mobileGeom.xApi}
+                        key={`a-dot-${mobileGeom.xA}-${mobileGeom.yStart}-${mobileGeom.yEnd}`}
+                        cx={mobileGeom.xA}
                         r={DOT / 2}
                         fill="rgb(26,111,181)"
                         initial={{ cy: mobileGeom.yStart, opacity: 0 }}
-                        animate={{
-                          cy: mobileGeom.yEnd,
-                          opacity: [0, 1, 1, 0],
-                        }}
+                        animate={{ cy: mobileGeom.yEnd, opacity: [0, 1, 1, 0] }}
                         transition={{
                           duration: hovered ? 0.65 : 0.85,
                           ease: "easeInOut",
@@ -310,15 +387,12 @@ export default function SystemConnectors() {
                         }}
                       />
                       <motion.circle
-                        key={`hook-dot-${mobileGeom.xWebhook}-${mobileGeom.yStart}-${mobileGeom.yEnd}`}
-                        cx={mobileGeom.xWebhook}
+                        key={`b-dot-${mobileGeom.xB}-${mobileGeom.yStart}-${mobileGeom.yEnd}`}
+                        cx={mobileGeom.xB}
                         r={DOT / 2}
                         fill="rgb(26,111,181)"
                         initial={{ cy: mobileGeom.yStart, opacity: 0 }}
-                        animate={{
-                          cy: mobileGeom.yEnd,
-                          opacity: [0, 1, 1, 0],
-                        }}
+                        animate={{ cy: mobileGeom.yEnd, opacity: [0, 1, 1, 0] }}
                         transition={{
                           duration: hovered ? 0.65 : 0.85,
                           ease: "easeInOut",
@@ -340,24 +414,34 @@ export default function SystemConnectors() {
 
             {/* Chips grid */}
             <div className="relative z-10 grid grid-cols-2 gap-3">
-              {tools.map((t, idx) => (
+              {visibleTools.map((t, idx) => (
                 <div
-                  key={t.label}
+                  key={`${t.label}-${idx}`}
                   ref={(el) => (mobileChipRefs.current[idx] = el)}
                   className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-3"
                 >
                   <div className="w-8 h-8 rounded-lg border border-white/10 bg-white/[0.04] flex items-center justify-center">
                     <t.Icon className="w-4 h-4 text-white/70" />
                   </div>
-                  <div className="text-[12px] font-semibold text-white/75 whitespace-nowrap">
-                    {t.label}
-                  </div>
+
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={t.label}
+                      initial={{ opacity: 0, y: 2 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -2 }}
+                      transition={{ duration: 0.25, ease: "easeOut" }}
+                      className="text-[12px] font-semibold text-white/75 whitespace-nowrap"
+                    >
+                      {t.label}
+                    </motion.div>
+                  </AnimatePresence>
                 </div>
               ))}
             </div>
 
-                        {/* Hub full width */}
-                        <div
+            {/* Hub full width */}
+            <div
               ref={mobileHubRef}
               data-hub
               className="nh-hub relative z-10 mt-6 w-full rounded-2xl border border-[#1a6fb5]/35 bg-[#0a1628]/40 px-4 py-4 flex flex-col items-center justify-center text-center"
@@ -373,7 +457,6 @@ export default function SystemConnectors() {
 
               <div className="pointer-events-none absolute inset-0 rounded-2xl shadow-[0_0_0_1px_rgba(26,111,181,0.15),0_0_32px_rgba(26,111,181,0.18)]" />
             </div>
-
           </div>
         ) : (
           // DESKTOP
@@ -398,18 +481,28 @@ export default function SystemConnectors() {
             </svg>
 
             <div className="flex flex-col gap-2">
-              {tools.map((t, idx) => (
+              {visibleTools.map((t, idx) => (
                 <div
-                  key={t.label}
+                  key={`${t.label}-${idx}`}
                   ref={(el) => (desktopChipRefs.current[idx] = el)}
                   className="group flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2"
                 >
                   <div className="w-7 h-7 rounded-lg border border-white/10 bg-white/[0.04] flex items-center justify-center">
                     <t.Icon className="w-4 h-4 text-white/70" />
                   </div>
-                  <div className="text-[12px] font-semibold text-white/75 whitespace-nowrap">
-                    {t.label}
-                  </div>
+
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={t.label}
+                      initial={{ opacity: 0, y: 2 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -2 }}
+                      transition={{ duration: 0.25, ease: "easeOut" }}
+                      className="text-[12px] font-semibold text-white/75 whitespace-nowrap"
+                    >
+                      {t.label}
+                    </motion.div>
+                  </AnimatePresence>
                 </div>
               ))}
             </div>
@@ -430,7 +523,7 @@ export default function SystemConnectors() {
             </div>
 
             {!reduceMotion &&
-              desktopPaths.length === tools.length &&
+              desktopPaths.length === CHIP_COUNT &&
               pulses.map((p) => {
                 const d = desktopPaths[p.fromIndex];
                 if (!d) return null;
