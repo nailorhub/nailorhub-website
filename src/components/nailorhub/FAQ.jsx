@@ -21,7 +21,7 @@ const faqs = [
 
 function FAQItem({ faq, isOpen, toggle }) {
   return (
-    <div className="border-b border-gray-100 last:border-0">
+    <div className="border-b border-gray-300 last:border-0">
       <button
         onClick={toggle}
         className="w-full flex items-center justify-between py-5 text-left group"
@@ -80,7 +80,7 @@ export default function FAQ() {
           whileInView={{ opacity: 1 }}
           viewport={{ once: true, amount: 0.2 }}
           transition={isMobile ? { duration: 0 } : { duration: 0.6, ease: "easeOut" }}
-          className="bg-white rounded-2xl border border-gray-100 p-6 sm:p-8 shadow-[0_2px_12px_rgba(0,0,0,0.03)]"
+          className="bg-white rounded-2xl border border-gray-300 p-6 sm:p-8 shadow-[0_2px_12px_rgba(0,0,0,0.03)]"
         >
           {faqs.map((faq, i) => (
             <FAQItem
