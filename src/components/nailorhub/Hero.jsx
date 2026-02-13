@@ -19,7 +19,7 @@ export default function Hero() {
   };
 
   return (
-    <section className="relative min-h-[100svh] flex flex-col overflow-visible bg-[#0a1628] pb-[calc(env(safe-area-inset-bottom)+16px)] md:pb-0">
+<section className="relative min-h-[100svh] flex flex-col overflow-x-hidden overflow-y-visible bg-[#0a1628] pb-[calc(env(safe-area-inset-bottom)+16px)] md:pb-0">
       {/* Tech background */}
       <div
         className="absolute inset-0 opacity-10 hidden md:block"
