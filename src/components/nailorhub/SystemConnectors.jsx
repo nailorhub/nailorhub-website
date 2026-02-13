@@ -161,7 +161,7 @@ export default function SystemConnectors() {
         lastSetRef.current = sig;
         return next;
       });
-    }, 2400);
+    }, 4200);
 
     return () => window.clearInterval(interval);
   }, [reduceMotion, hovered]);
@@ -331,7 +331,7 @@ export default function SystemConnectors() {
       ref={shellRef}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      className="w-full max-w-[720px] mt-6 sm:mt-8"
+      className="w-full max-w-[560px] md:max-w-[600px] mt-6 sm:mt-8"
       aria-label="System connectors visual"
     >
       <div className="relative rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-md shadow-[0_10px_40px_rgba(0,0,0,0.25)] overflow-hidden">
@@ -436,7 +436,7 @@ export default function SystemConnectors() {
                       initial={{ opacity: 0, y: 2 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -2 }}
-                      transition={{ duration: 0.25, ease: "easeOut" }}
+                      transition={{ duration: 0.75, ease: "easeOut" }}
                       className="text-[12px] font-semibold text-white/75 whitespace-nowrap"
                     >
                       {t.label}
@@ -518,7 +518,7 @@ export default function SystemConnectors() {
             <div
               ref={desktopHubRef}
               data-hub
-              className="nh-hub relative z-10 min-w-[240px] rounded-2xl border border-[#1a6fb5]/35 bg-[#0a1628]/40 px-4 py-4 flex flex-col items-center justify-center text-center"
+              className="nh-hub relative z-10 min-w-[200px] rounded-2xl border border-[#1a6fb5]/35 bg-[#0a1628]/40 px-4 py-4 flex flex-col items-center justify-center text-center"
             >
               <div className="w-11 h-11 rounded-2xl bg-[#1a6fb5]/10 border border-[#1a6fb5]/25 flex items-center justify-center mb-2">
                 <Network className="w-5 h-5 text-[#6fb7ff]" />
