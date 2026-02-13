@@ -93,9 +93,9 @@ export default function Approach() {
         >
           <div className="absolute -top-px left-1/2 -translate-x-1/2 w-20 h-[2px] bg-gradient-to-r from-transparent via-[#1a6fb5] to-transparent" />
           <p className="text-[17px] sm:text-lg font-semibold text-white leading-relaxed">
-            "No-code when it's enough.{" "}
+            No-code when it's enough.{" "}
             <span className="text-[#1a6fb5]">Low-code when you need speed.</span>{" "}
-            Custom code when you need scale."
+            Custom code when you need scale.
           </p>
         </motion.div>
       </div>
