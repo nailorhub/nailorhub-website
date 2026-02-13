@@ -19,6 +19,12 @@ const TOOL_POOL = [
   { label: "GraphQL", Icon: PlugZap },
   { label: "REST APIs", Icon: PlugZap },
   { label: "Webhooks", Icon: Webhook },
+  { label: "Airtable", Icon: Sheet },
+  { label: "Notion", Icon: Sheet },
+  { label: "Slack", Icon: Network },
+  { label: "Microsoft Teams", Icon: Network },
+  { label: "Google Drive", Icon: Sheet },
+  { label: "WordPress", Icon: Network },
 ];
 
 function uid() {
