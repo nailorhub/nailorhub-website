@@ -44,8 +44,33 @@ function shuffle(arr) {
   return a;
 }
 
+// Fix: initial value comes from matchMedia so mobile does not render desktop first
 function useIsMobile(breakpointPx = 640) {
-  const [isMobile, setIsMobile] = useState(false);
+  const getMatches = () => {
+    if (typeof window === "undefined") return false;
+    return window.matchMedia(`(max-width: ${breakpointPx}px)`).matches;
+  };
+
+  const [isMobile, setIsMobile] = useState(getMatches);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia(`(max-width: ${breakpointPx}px)`);
+    const update = () => setIsMobile(mq.matches);
+    update();
+
+    if (mq.addEventListener) mq.addEventListener("change", update);
+    else mq.addListener(update);
+
+    return () => {
+      if (mq.removeEventListener) mq.removeEventListener("change", update);
+      else mq.removeListener(update);
+    };
+  }, [breakpointPx]);
+
+  return isMobile;
+}
+
 
   useEffect(() => {
     if (typeof window === "undefined") return;
