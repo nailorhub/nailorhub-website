@@ -1,7 +1,9 @@
-// Services.jsx
 import React from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 import { BarChart3, AppWindow, Workflow, Database, Blocks, Globe } from "lucide-react";
+
+const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+const noAnimVariants = { initial: { opacity: 1 }, animate: { opacity: 1 }, transition: { duration: 0 } };
 
 const services = [
   {
@@ -62,19 +64,14 @@ const services = [
 ];
 
 export default function Services() {
-  const reduceMotion = useReducedMotion();
-
   return (
-    <section
-      id="services"
-      className="py-24 md:py-28 bg-gradient-to-b from-white via-[#fafbfd] to-white"
-    >
+    <section id="services" className="py-24 md:py-28 bg-gradient-to-b from-white via-[#fafbfd] to-white">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <motion.div
-          initial={reduceMotion ? { opacity: 1 } : { opacity: 0 }}
+          initial={isMobile ? { opacity: 1 } : { opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true, amount: 0.3 }}
-          transition={reduceMotion ? { duration: 0 } : { duration: 0.6, ease: "easeOut" }}
+          transition={isMobile ? { duration: 0 } : { duration: 0.6, ease: "easeOut" }}
           className="text-center mb-16"
         >
           <p className="text-[13px] font-semibold text-[#1a6fb5] uppercase tracking-widest mb-3">
@@ -89,12 +86,10 @@ export default function Services() {
           {services.map((s, i) => (
             <motion.div
               key={i}
-              initial={reduceMotion ? { opacity: 1 } : { opacity: 0 }}
+              initial={isMobile ? { opacity: 1 } : { opacity: 0 }}
               whileInView={{ opacity: 1 }}
               viewport={{ once: true, amount: 0.2 }}
-              transition={
-                reduceMotion ? { duration: 0 } : { delay: i * 0.08, duration: 0.6, ease: "easeOut" }
-              }
+              transition={isMobile ? { duration: 0 } : { delay: i * 0.08, duration: 0.6, ease: "easeOut" }}
               className="group relative bg-white rounded-2xl border border-gray-300 p-7 hover:shadow-lg hover:shadow-gray-100/80 hover:border-gray-400 transition-all duration-300"
             >
               <div className="w-11 h-11 rounded-xl bg-[#1a6fb5]/5 group-hover:bg-[#1a6fb5]/10 flex items-center justify-center mb-5 transition-colors">

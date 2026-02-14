@@ -4,6 +4,7 @@ import { Database, Sheet, PlugZap, Webhook, Network } from "lucide-react";
 
 const CHIP_COUNT = 4;
 
+// Rotation pool (your stack + what you do)
 const TOOL_POOL = [
   { label: "SQL Database", Icon: Database },
   { label: "Google Sheets", Icon: Sheet },
@@ -37,7 +38,10 @@ function shuffle(arr) {
   return a;
 }
 
-// Fix: initial value comes from matchMedia so mobile does not render desktop first
+/**
+ * FIX: initialize from matchMedia so mobile does not render desktop first.
+ * That initial desktop -> mobile swap is what causes the jump on load.
+ */
 function useIsMobile(breakpointPx = 640) {
   const getMatches = () => {
     if (typeof window === "undefined") return false;
@@ -71,23 +75,30 @@ export default function SystemConnectors() {
   const isMobile = useIsMobile(640);
 
   const [hovered, setHovered] = useState(false);
+
+  // Desktop pulses only
   const [pulses, setPulses] = useState([]);
 
   const shellRef = useRef(null);
 
+  // Desktop refs
   const desktopRowRef = useRef(null);
   const desktopChipRefs = useRef([]);
   const desktopHubRef = useRef(null);
 
+  // Mobile refs
   const mobileWrapRef = useRef(null);
   const mobileChipRefs = useRef([]);
   const mobileHubRef = useRef(null);
 
+  // Shared SVG viewBox size
   const [size, setSize] = useState({ w: 640, h: 220 });
 
+  // Desktop geometry
   const [desktopStarts, setDesktopStarts] = useState([]);
   const [desktopEnd, setDesktopEnd] = useState({ x: 520, y: 70 });
 
+  // Mobile geometry (two vertical lines under bottom row chips index 2 & 3)
   const [mobileGeom, setMobileGeom] = useState({
     ready: false,
     xA: 0,
@@ -98,6 +109,7 @@ export default function SystemConnectors() {
 
   const DOT = 9;
 
+  // Queue rotation (carryover so we never show a "lonely leftover")
   const queueRef = useRef([]);
   const lastSetRef = useRef("");
 
@@ -109,6 +121,7 @@ export default function SystemConnectors() {
     return first;
   });
 
+  // Rotate ALL 4 at once using carryover queue logic
   useEffect(() => {
     if (reduceMotion) return;
 
@@ -116,17 +129,21 @@ export default function SystemConnectors() {
       if (hovered) return;
 
       setVisibleTools(() => {
+        // If fewer than 4 remain, carry them into next cycle and top up with fresh shuffled items
         if (queueRef.current.length < CHIP_COUNT) {
-          let nextBatch = [...queueRef.current];
+          let nextBatch = [...queueRef.current]; // 0..3 items carried
 
           while (nextBatch.length < CHIP_COUNT) {
             const fresh = shuffle(TOOL_POOL);
             const filtered = fresh.filter(
               (t) => !nextBatch.some((x) => x.label === t.label)
             );
-            nextBatch = nextBatch.concat(filtered.slice(0, CHIP_COUNT - nextBatch.length));
+            nextBatch = nextBatch.concat(
+              filtered.slice(0, CHIP_COUNT - nextBatch.length)
+            );
           }
 
+          // Build a new queue excluding what we just used
           const usedLabels = new Set(nextBatch.map((t) => t.label));
           queueRef.current = shuffle(TOOL_POOL).filter((t) => !usedLabels.has(t.label));
 
@@ -135,9 +152,11 @@ export default function SystemConnectors() {
           return nextBatch;
         }
 
+        // Normal case: take next 4
         const next = queueRef.current.slice(0, CHIP_COUNT);
         queueRef.current = queueRef.current.slice(CHIP_COUNT);
 
+        // Prevent exact same 4 twice in a row
         const sig = next.map((t) => t.label).join("|");
         if (sig === lastSetRef.current && queueRef.current.length >= CHIP_COUNT) {
           const alt = queueRef.current.slice(0, CHIP_COUNT);
@@ -154,6 +173,7 @@ export default function SystemConnectors() {
     return () => window.clearInterval(interval);
   }, [reduceMotion, hovered]);
 
+  // Desktop path builder
   const makeDesktopPath = useMemo(() => {
     return (s, e) => {
       if (!s || !e) return "";
@@ -169,14 +189,8 @@ export default function SystemConnectors() {
     return desktopStarts.map((s) => makeDesktopPath(s, desktopEnd));
   }, [desktopStarts, desktopEnd, makeDesktopPath]);
 
+  // Measure layout + compute geometry
   useLayoutEffect(() => {
-    const setSizeIfChanged = (w, h) => {
-      setSize((prev) => {
-        if (prev.w === w && prev.h === h) return prev;
-        return { w, h };
-      });
-    };
-
     const calcDesktop = () => {
       if (!desktopRowRef.current || !desktopHubRef.current) return;
 
@@ -192,7 +206,7 @@ export default function SystemConnectors() {
         .map((el) => {
           const r = el.getBoundingClientRect();
           return {
-            x: r.left - row.left + r.width,
+            x: r.left - row.left + r.width, // right edge of chip
             y: r.top - row.top + r.height / 2,
           };
         });
@@ -202,7 +216,7 @@ export default function SystemConnectors() {
         y: clamp(hub.top - row.top + hub.height / 2, 0, h),
       };
 
-      setSizeIfChanged(w, h);
+      setSize({ w, h });
       setDesktopStarts(starts);
       setDesktopEnd(end);
     };
@@ -221,10 +235,11 @@ export default function SystemConnectors() {
         .filter(Boolean)
         .map((el) => el.getBoundingClientRect());
 
+      // Bottom row chips in a 2-col grid are indices 2 and 3
       const aRect = rects[2];
       const bRect = rects[3];
 
-      setSizeIfChanged(w, h);
+      setSize({ w, h });
 
       if (!aRect || !bRect) {
         setMobileGeom((g) => ({ ...g, ready: false }));
@@ -234,12 +249,14 @@ export default function SystemConnectors() {
       const xA = clamp(aRect.left - wrap.left + aRect.width / 2, 0, w);
       const xB = clamp(bRect.left - wrap.left + bRect.width / 2, 0, w);
 
+      // Start just under the bottom row
       const yStart = clamp(
         Math.round(Math.max(aRect.bottom, bRect.bottom) - wrap.top + 6),
         0,
         h
       );
 
+      // End a short distance above the hub top
       let yEnd = clamp(Math.round(hub.top - wrap.top - 12), 0, h);
       if (yEnd < yStart + 18) yEnd = clamp(yStart + 32, 0, h);
 
@@ -275,6 +292,7 @@ export default function SystemConnectors() {
     };
   }, [isMobile, visibleTools]);
 
+  // Desktop pulse scheduling
   useEffect(() => {
     if (isMobile) return;
     if (reduceMotion) return;
@@ -323,12 +341,14 @@ export default function SystemConnectors() {
       className="w-full max-w-[720px] mt-6 sm:mt-8"
       aria-label="System connectors visual"
     >
-      <div className="relative min-h-[360px] sm:min-h-[240px] rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-md shadow-[0_10px_40px_rgba(0,0,0,0.25)] overflow-hidden">
+      <div className="relative rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-md shadow-[0_10px_40px_rgba(0,0,0,0.25)] overflow-hidden">
+        {/* subtle inner grid */}
         <div className="absolute inset-0 opacity-[0.12] pointer-events-none [mask-image:radial-gradient(ellipse_at_center,black,transparent_65%)]">
           <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.06)_1px,transparent_1px)] bg-[size:24px_24px]" />
         </div>
 
         {isMobile ? (
+          // MOBILE
           <div ref={mobileWrapRef} className="relative px-4 pt-4 pb-5">
             <svg
               className="pointer-events-none absolute inset-0 w-full h-full"
@@ -338,6 +358,7 @@ export default function SystemConnectors() {
             >
               {mobileGeom.ready && (
                 <>
+                  {/* Two short vertical lines under bottom row chips */}
                   <line
                     x1={mobileGeom.xA}
                     y1={mobileGeom.yStart}
@@ -404,6 +425,7 @@ export default function SystemConnectors() {
               )}
             </svg>
 
+            {/* Chips grid */}
             <div className="relative z-10 grid grid-cols-2 gap-3">
               {visibleTools.map((t, idx) => (
                 <div
@@ -431,6 +453,7 @@ export default function SystemConnectors() {
               ))}
             </div>
 
+            {/* Hub full width */}
             <div
               ref={mobileHubRef}
               data-hub
@@ -441,12 +464,15 @@ export default function SystemConnectors() {
               </div>
 
               <div className="text-white font-semibold tracking-tight">NailorHub</div>
-              <div className="text-[11px] mt-0.5 text-white/55 leading-tight">One connected system</div>
+              <div className="text-[11px] mt-0.5 text-white/55 leading-tight">
+                One connected system
+              </div>
 
               <div className="pointer-events-none absolute inset-0 rounded-2xl shadow-[0_0_0_1px_rgba(26,111,181,0.15),0_0_32px_rgba(26,111,181,0.18)]" />
             </div>
           </div>
         ) : (
+          // DESKTOP
           <div ref={desktopRowRef} className="relative flex items-stretch gap-6 px-5 py-4">
             <svg
               className="pointer-events-none absolute inset-0 w-full h-full"
