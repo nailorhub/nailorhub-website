@@ -44,6 +44,7 @@ function shuffle(arr) {
   return a;
 }
 
+// Fix: initial value comes from matchMedia so mobile does not render desktop first
 function useIsMobile(breakpointPx = 640) {
   const getMatches = () => {
     if (typeof window === "undefined") return false;
