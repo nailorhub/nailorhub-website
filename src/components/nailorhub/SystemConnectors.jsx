@@ -45,12 +45,19 @@ function shuffle(arr) {
 }
 
 function useIsMobile(breakpointPx = 640) {
-  const [isMobile, setIsMobile] = useState(false);
+  const getMatches = () => {
+    if (typeof window === "undefined") return false;
+    return window.matchMedia(`(max-width: ${breakpointPx}px)`).matches;
+  };
+
+  const [isMobile, setIsMobile] = useState(getMatches);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+
     const mq = window.matchMedia(`(max-width: ${breakpointPx}px)`);
-    const update = () => setIsMobile(!!mq.matches);
+    const update = () => setIsMobile(mq.matches);
+
     update();
 
     if (mq.addEventListener) mq.addEventListener("change", update);
@@ -64,6 +71,7 @@ function useIsMobile(breakpointPx = 640) {
 
   return isMobile;
 }
+
 
 export default function SystemConnectors() {
   const reduceMotion = useReducedMotion();
