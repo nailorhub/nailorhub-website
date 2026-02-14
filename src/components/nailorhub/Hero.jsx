@@ -1,3 +1,4 @@
+// Hero.jsx
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Settings, Zap, Layers, BarChart3 } from "lucide-react";
@@ -19,8 +20,7 @@ export default function Hero() {
   };
 
   return (
-<section className="relative min-h-[100svh] flex flex-col overflow-x-hidden overflow-y-visible bg-[#0a1628] pb-[calc(env(safe-area-inset-bottom)+16px)] md:pb-0">
-      {/* Tech background */}
+    <section className="relative h-[100svh] flex flex-col overflow-hidden bg-[#0a1628] pb-[calc(env(safe-area-inset-bottom)+16px)] md:pb-0">
       <div
         className="absolute inset-0 opacity-10 hidden md:block"
         style={{
@@ -33,20 +33,15 @@ export default function Hero() {
 
       <div className="absolute inset-0 bg-gradient-to-b from-[#0a1628]/70 via-[#0a1628]/80 to-[#0a1628]" />
 
-      {/* Data flow animation */}
       <div className="absolute inset-0">
         <DataFlowGrid />
       </div>
 
-      {/* Gradient orbs */}
       <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[#1a6fb5]/[0.04] rounded-full blur-3xl" />
       <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-[#1a6fb5]/[0.04] rounded-full blur-3xl" />
 
-      {/* Centered content */}
       <div className="relative flex-1 flex flex-col items-center justify-center max-w-3xl mx-auto w-full px-6 lg:px-8 pt-16 sm:pt-16 md:pt-12 pb-6">
-      {/* Text content - centered */}
         <div className="flex flex-col items-center justify-center text-center w-full px-6 md:px-0">
-          {/* Badge */}
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -79,8 +74,8 @@ export default function Hero() {
             transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
             className="text-gray-300 mb-7 leading-[1.6] max-w-[640px] text-[14px] sm:text-[15px]"
           >
-            Built custom with no-code, low-code, and custom development so your
-            workflows stay clean, connected, and visible.
+            Built custom with no-code, low-code, and custom development so your workflows stay clean,
+            connected, and visible.
           </motion.p>
 
           <motion.div
@@ -106,7 +101,6 @@ export default function Hero() {
             </Button>
           </motion.div>
 
-          {/* System connectors visual */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -120,7 +114,6 @@ export default function Hero() {
         </div>
       </div>
 
-      {/* Credibility items - anchored to bottom */}
       <div className="relative w-full mt-auto border-t border-white/10 bg-white/[0.02] backdrop-blur-sm opacity-70">
         <div className="max-w-7xl mx-auto px-4 lg:px-8 py-3 md:py-6">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-0 lg:divide-x divide-white/10">
