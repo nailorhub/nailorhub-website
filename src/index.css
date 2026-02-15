@@ -82,7 +82,28 @@
     @apply border-border outline-ring/50;
   }
 
+  html {
+    min-height: var(--viewport-height, 100svh);
+  }
+
   body {
     @apply bg-background text-foreground;
+    min-height: var(--viewport-height, 100svh);
+  }
+}
+
+/* Mobile: lock hero height slightly above viewport so "We connect your tools" caption is visible */
+@media (max-width: 767px) {
+  .hero-section {
+    height: calc(var(--viewport-height, 100svh) + 32px);
+    min-height: 0;
+    overflow-y: hidden;
+  }
+  /* Clip middle content so hero content doesn't overflow below the section */
+  .hero-content {
+    overflow-y: hidden;
+    overflow-x: hidden;
+    /* Align to top so the badge doesn't get centered up into the header area */
+    justify-content: flex-start;
   }
 }

@@ -13,7 +13,7 @@ import FloatingCTA from "@/components/nailorhub/FloatingCTA";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-white antialiased">
+    <div className="bg-white antialiased" style={{ minHeight: "var(--viewport-height, 100svh)" }}>
       <Header />
       <Hero />
       <Services />
