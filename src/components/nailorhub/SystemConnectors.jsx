@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useEffect, useMemo, useRef, useState, useLayoutEffect } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Database, Sheet, PlugZap, Webhook, Network } from "lucide-react";
@@ -22,7 +24,7 @@ const TOOL_POOL = [
   { label: "Airtable", Icon: Sheet },
   { label: "Notion", Icon: Sheet },
   { label: "Slack", Icon: Network },
-  { label: "Microsoft Teams", Icon: Network },
+  { label: "Teams", Icon: Network },
   { label: "Google Drive", Icon: Sheet },
   { label: "WordPress", Icon: Network },
 ];
@@ -72,10 +74,19 @@ function useIsMobile(breakpointPx = 640) {
   return isMobile;
 }
 
-
 export default function SystemConnectors() {
   const reduceMotion = useReducedMotion();
   const isMobile = useIsMobile(640);
+
+  // Enable motion after first paint (prevents mobile "jump" on load)
+  const [animReady, setAnimReady] = useState(false);
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setAnimReady(true));
+    return () => cancelAnimationFrame(id);
+  }, []);
+
+  // Only disable internal motion during the first frame on mobile
+  const noMotionMobile = isMobile && !animReady;
 
   const [hovered, setHovered] = useState(false);
 
@@ -127,37 +138,32 @@ export default function SystemConnectors() {
   // Rotate ALL 4 at once using carryover queue logic
   useEffect(() => {
     if (reduceMotion) return;
+    // Avoid any rotation during the first paint on mobile
+    if (isMobile && !animReady) return;
 
     const interval = window.setInterval(() => {
       if (hovered) return;
 
       setVisibleTools(() => {
-        // If fewer than 4 remain, carry them into next cycle and top up with fresh shuffled items
         if (queueRef.current.length < CHIP_COUNT) {
-          let nextBatch = [...queueRef.current]; // 0..3 items carried
+          let nextBatch = [...queueRef.current];
 
           while (nextBatch.length < CHIP_COUNT) {
             const fresh = shuffle(TOOL_POOL);
-            const filtered = fresh.filter(
-              (t) => !nextBatch.some((x) => x.label === t.label)
-            );
+            const filtered = fresh.filter((t) => !nextBatch.some((x) => x.label === t.label));
             nextBatch = nextBatch.concat(filtered.slice(0, CHIP_COUNT - nextBatch.length));
           }
 
-          // Build a new queue excluding what we just used
           const usedLabels = new Set(nextBatch.map((t) => t.label));
           queueRef.current = shuffle(TOOL_POOL).filter((t) => !usedLabels.has(t.label));
 
-          const sig = nextBatch.map((t) => t.label).join("|");
-          lastSetRef.current = sig;
+          lastSetRef.current = nextBatch.map((t) => t.label).join("|");
           return nextBatch;
         }
 
-        // Normal case: take next 4
         const next = queueRef.current.slice(0, CHIP_COUNT);
         queueRef.current = queueRef.current.slice(CHIP_COUNT);
 
-        // Prevent exact same 4 twice in a row
         const sig = next.map((t) => t.label).join("|");
         if (sig === lastSetRef.current && queueRef.current.length >= CHIP_COUNT) {
           const alt = queueRef.current.slice(0, CHIP_COUNT);
@@ -172,7 +178,7 @@ export default function SystemConnectors() {
     }, 4200);
 
     return () => window.clearInterval(interval);
-  }, [reduceMotion, hovered]);
+  }, [reduceMotion, hovered, isMobile, animReady]);
 
   // Desktop path builder
   const makeDesktopPath = useMemo(() => {
@@ -207,7 +213,7 @@ export default function SystemConnectors() {
         .map((el) => {
           const r = el.getBoundingClientRect();
           return {
-            x: r.left - row.left + r.width, // right edge of chip
+            x: r.left - row.left + r.width,
             y: r.top - row.top + r.height / 2,
           };
         });
@@ -236,7 +242,6 @@ export default function SystemConnectors() {
         .filter(Boolean)
         .map((el) => el.getBoundingClientRect());
 
-      // Bottom row chips in a 2-col grid are indices 2 and 3
       const aRect = rects[2];
       const bRect = rects[3];
 
@@ -250,24 +255,12 @@ export default function SystemConnectors() {
       const xA = clamp(aRect.left - wrap.left + aRect.width / 2, 0, w);
       const xB = clamp(bRect.left - wrap.left + bRect.width / 2, 0, w);
 
-      // Start just under the bottom row
-      const yStart = clamp(
-        Math.round(Math.max(aRect.bottom, bRect.bottom) - wrap.top + 6),
-        0,
-        h
-      );
+      const yStart = clamp(Math.round(Math.max(aRect.bottom, bRect.bottom) - wrap.top + 6), 0, h);
 
-      // End a short distance above the hub top
       let yEnd = clamp(Math.round(hub.top - wrap.top - 12), 0, h);
       if (yEnd < yStart + 18) yEnd = clamp(yStart + 32, 0, h);
 
-      setMobileGeom({
-        ready: true,
-        xA,
-        xB,
-        yStart,
-        yEnd,
-      });
+      setMobileGeom({ ready: true, xA, xB, yStart, yEnd });
     };
 
     const calc = () => {
@@ -359,7 +352,6 @@ export default function SystemConnectors() {
             >
               {mobileGeom.ready && (
                 <>
-                  {/* Two short vertical lines under bottom row chips */}
                   <line
                     x1={mobileGeom.xA}
                     y1={mobileGeom.yStart}
@@ -379,7 +371,8 @@ export default function SystemConnectors() {
                     strokeLinecap="round"
                   />
 
-                  {!reduceMotion && (
+                  {/* Mobile dots: off only on the first paint */}
+                  {!reduceMotion && !noMotionMobile && (
                     <>
                       <motion.circle
                         key={`a-dot-${mobileGeom.xA}-${mobileGeom.yStart}-${mobileGeom.yEnd}`}
@@ -438,18 +431,25 @@ export default function SystemConnectors() {
                     <t.Icon className="w-4 h-4 text-white/70" />
                   </div>
 
-                  <AnimatePresence mode="wait">
-                    <motion.div
-                      key={t.label}
-                      initial={{ opacity: 0, y: 2 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -2 }}
-                      transition={{ duration: 0.75, ease: "easeOut" }}
-                      className="text-[12px] font-semibold text-white/75 whitespace-nowrap"
-                    >
+                  {/* Labels: static on first paint, then animated */}
+                  {noMotionMobile ? (
+                    <div className="text-[12px] font-semibold text-white/75 whitespace-nowrap">
                       {t.label}
-                    </motion.div>
-                  </AnimatePresence>
+                    </div>
+                  ) : (
+                    <AnimatePresence mode="wait">
+                      <motion.div
+                        key={t.label}
+                        initial={{ opacity: 0, y: 2 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -2 }}
+                        transition={{ duration: 0.75, ease: "easeOut" }}
+                        className="text-[12px] font-semibold text-white/75 whitespace-nowrap"
+                      >
+                        {t.label}
+                      </motion.div>
+                    </AnimatePresence>
+                  )}
                 </div>
               ))}
             </div>
@@ -465,9 +465,7 @@ export default function SystemConnectors() {
               </div>
 
               <div className="text-white font-semibold tracking-tight">NailorHub</div>
-              <div className="text-[11px] mt-0.5 text-white/55 leading-tight">
-                One connected system
-              </div>
+              <div className="text-[11px] mt-0.5 text-white/55 leading-tight">One connected system</div>
 
               <div className="pointer-events-none absolute inset-0 rounded-2xl shadow-[0_0_0_1px_rgba(26,111,181,0.15),0_0_32px_rgba(26,111,181,0.18)]" />
             </div>
@@ -577,7 +575,6 @@ export default function SystemConnectors() {
         )}
       </div>
 
-    
       <style>{`
         .nh-hub-ping { animation: nhHubPing 420ms ease-out; }
         @keyframes nhHubPing {
