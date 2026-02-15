@@ -47,7 +47,7 @@ function shuffle(arr) {
 // Fix: initial value comes from matchMedia so mobile does not render desktop first
 function useIsMobile(breakpointPx = 640) {
   const getMatches = () => {
-    if (typeof window === "undefined") return false;
+    if (typeof window === "undefined") return true; // SSR: assume mobile to avoid hydration layout jump on mobile
     return window.matchMedia(`(max-width: ${breakpointPx}px)`).matches;
   };
 
@@ -578,10 +578,7 @@ export default function SystemConnectors() {
         )}
       </div>
 
-      <div className="text-center text-[11px] sm:text-[12px] text-white/60 mt-2 pb-2">
-        We connect your tools into one workflow
-      </div>
-
+    
       <style>{`
         .nh-hub-ping { animation: nhHubPing 420ms ease-out; }
         @keyframes nhHubPing {

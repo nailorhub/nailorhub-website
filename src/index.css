@@ -82,7 +82,21 @@
     @apply border-border outline-ring/50;
   }
 
+  html {
+    min-height: var(--viewport-height, 100svh);
+  }
+
   body {
     @apply bg-background text-foreground;
+    min-height: var(--viewport-height, 100svh);
   }
 }
+
+/* Mobile: keep hero stable on iOS Safari without forcing extra height */
+@media (max-width: 767px) {
+  .hero-section {
+    min-height: var(--viewport-height, 100svh);
+    height: auto;
+  }
+}
+
