@@ -139,11 +139,11 @@ export default function Hero() {
 
           {/* System connectors visual + caption */}
           <motion.div
-            initial={isMobile ? { opacity: 0, y: 0 } : { opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.55, ease: "easeOut" }}
-            className="w-full flex justify-center mt-2 sm:mt-0"
-          >
+  initial={{ opacity: 0 }}
+  animate={{ opacity: 1 }}
+  transition={{ duration: 0.6, delay: 0.55, ease: "easeOut" }}
+  className="w-full flex justify-center mt-2 sm:mt-0"
+>
             <div className="w-full flex flex-col items-center justify-center min-h-[360px] sm:min-h-[240px] pb-2">
               <SystemConnectors />
               <div className="text-center text-[11px] sm:text-[12px] text-white/60 mt-2">

@@ -94,23 +94,24 @@ export default function Services() {
   // On mobile, render plain divs so content paints immediately.
   const Wrap = isMobile ? "div" : motion.div;
 
+  // Desktop: FADE ONLY (no translate / shift)
   const headerMotionProps = isMobile
     ? {}
     : {
-        initial: { opacity: 0, y: 10 },
-        whileInView: { opacity: 1, y: 0 },
-        viewport: { once: true, amount: 0.2 },
-        transition: { duration: 0.6, ease: "easeOut" },
+        initial: { opacity: 0 },
+        whileInView: { opacity: 1 },
+        viewport: { once: true, amount: 0.18 },
+        transition: { duration: 0.45, ease: "easeOut" },
       };
 
   const cardMotionProps = (i) =>
     isMobile
       ? {}
       : {
-          initial: { opacity: 0, y: 12 },
-          whileInView: { opacity: 1, y: 0 },
+          initial: { opacity: 0 },
+          whileInView: { opacity: 1 },
           viewport: { once: true, amount: 0.12 },
-          transition: { delay: i * 0.06, duration: 0.6, ease: "easeOut" },
+          transition: { delay: i * 0.05, duration: 0.45, ease: "easeOut" },
         };
 
   return (
