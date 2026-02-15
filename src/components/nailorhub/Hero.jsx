@@ -7,7 +7,7 @@ import SystemConnectors from "./SystemConnectors";
 
 const credibilityItems = [
   { icon: Settings, text: "Built for operations" },
-  { icon: Zap, text: "Fast delivery, maintainable systems" },
+  { icon: Zap, text: "Maintainable systems" },
   { icon: Layers, text: "No-code to custom code" },
   { icon: BarChart3, text: "Data-first dashboards" },
 ];
@@ -19,10 +19,16 @@ export default function Hero() {
   };
 
   return (
-<section className="relative min-h-[100svh] flex flex-col overflow-x-hidden overflow-y-visible bg-[#0a1628] pb-[calc(env(safe-area-inset-bottom)+16px)] md:pb-0">
+    <section
+      style={{ minHeight: "var(--viewport-height, 100svh)" }}
+      className="
+        hero-section relative isolate flex flex-col overflow-hidden bg-[#0a1628]
+        pb-[calc(env(safe-area-inset-bottom)] md:pb-0
+      "
+    >
       {/* Tech background */}
       <div
-        className="absolute inset-0 opacity-10 hidden md:block"
+        className="pointer-events-none absolute inset-0 opacity-10 hidden md:block"
         style={{
           backgroundImage:
             "url(https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=1920&q=80)",
@@ -31,20 +37,19 @@ export default function Hero() {
         }}
       />
 
-      <div className="absolute inset-0 bg-gradient-to-b from-[#0a1628]/70 via-[#0a1628]/80 to-[#0a1628]" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#0a1628]/70 via-[#0a1628]/80 to-[#0a1628]" />
 
       {/* Data flow animation */}
-      <div className="absolute inset-0">
+      <div className="pointer-events-none absolute inset-0">
         <DataFlowGrid />
       </div>
 
       {/* Gradient orbs */}
-      <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[#1a6fb5]/[0.04] rounded-full blur-3xl" />
-      <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-[#1a6fb5]/[0.04] rounded-full blur-3xl" />
+      <div className="pointer-events-none absolute top-0 right-0 w-[600px] h-[600px] bg-[#1a6fb5]/[0.04] rounded-full blur-3xl" />
+      <div className="pointer-events-none absolute bottom-0 left-0 w-[600px] h-[600px] bg-[#1a6fb5]/[0.04] rounded-full blur-3xl" />
 
       {/* Centered content */}
-      <div className="relative flex-1 flex flex-col items-center justify-center max-w-3xl mx-auto w-full px-6 lg:px-8 pt-16 sm:pt-16 md:pt-12 pb-6">
-      {/* Text content - centered */}
+      <div className="relative z-10 flex-1 flex flex-col items-center justify-center max-w-3xl mx-auto w-full px-6 lg:px-8 pt-16 sm:pt-16 md:pt-12 pb-4">
         <div className="flex flex-col items-center justify-center text-center w-full px-6 md:px-0">
           {/* Badge */}
           <motion.div
@@ -106,24 +111,28 @@ export default function Hero() {
             </Button>
           </motion.div>
 
-          {/* System connectors visual */}
+          {/* System connectors visual + caption (caption ONLY here) */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.55, ease: "easeOut" }}
             className="w-full flex justify-center mt-2 sm:mt-0"
           >
-            <div className="w-full flex justify-center min-h-[360px] sm:min-h-[240px]">
+            <div className="w-full flex flex-col items-center justify-center min-h-[360px] sm:min-h-[240px] pb-2">
               <SystemConnectors />
+
+              <div className="text-center text-[11px] sm:text-[12px] text-white/60 mt-2">
+                We connect your tools into one workflow
+              </div>
             </div>
           </motion.div>
         </div>
       </div>
 
-      {/* Credibility items - anchored to bottom */}
-      <div className="relative w-full mt-auto border-t border-white/10 bg-white/[0.02] backdrop-blur-sm opacity-70">
-        <div className="max-w-7xl mx-auto px-4 lg:px-8 py-3 md:py-6">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-0 lg:divide-x divide-white/10">
+      {/* Credibility bar INSIDE hero, anchored to bottom */}
+      <div className="relative z-10 w-full mt-auto shrink-0 border-t border-white/10 bg-white/[0.02] backdrop-blur-sm">
+        <div className="max-w-7xl mx-auto px-4 lg:px-8 py-3 md:py-6 opacity-80">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-0 md:divide-x divide-white/10 items-start">
             {credibilityItems.map((item, i) => (
               <motion.div
                 key={i}
@@ -134,12 +143,13 @@ export default function Hero() {
                   duration: 0.6,
                   ease: "easeOut",
                 }}
-                className="flex items-center justify-center gap-2 px-2"
+                className="flex items-start gap-3 px-2"
               >
-                <div className="w-6 h-6 md:w-7 md:h-7 rounded-lg bg-[#1a6fb5]/10 border border-[#1a6fb5]/20 flex items-center justify-center flex-shrink-0">
-                  <item.icon className="w-3 h-3 md:w-3.5 md:h-3.5 text-[#1a6fb5]" />
+                <div className="w-9 h-9 rounded-lg bg-[#1a6fb5]/10 border border-[#1a6fb5]/20 flex items-center justify-center flex-shrink-0">
+                  <item.icon className="w-4 h-4 text-[#6fb7ff]" />
                 </div>
-                <span className="text-[10px] md:text-[12px] font-semibold text-gray-300 leading-tight">
+
+                <span className="pt-[12px] text-[10px] md:text-[12px] font-semibold text-gray-300 leading-tight">
                   {item.text}
                 </span>
               </motion.div>
