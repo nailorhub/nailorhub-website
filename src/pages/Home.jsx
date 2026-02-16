@@ -1,4 +1,6 @@
 import React from "react";
+import ScrollProgressBar from "@/components/nailorhub/ScrollProgressBar";
+import CustomCursor from "@/components/nailorhub/CustomCursor";
 import Header from "@/components/nailorhub/Header";
 import Hero from "@/components/nailorhub/Hero";
 import Services from "@/components/nailorhub/Services";
@@ -13,7 +15,12 @@ import FloatingCTA from "@/components/nailorhub/FloatingCTA";
 
 export default function Home() {
   return (
-    <div className="bg-white antialiased" style={{ minHeight: "var(--viewport-height, 100svh)" }}>
+    <div
+      className="bg-white antialiased pt-[64px]"
+      style={{ minHeight: "var(--viewport-height, 100svh)" }}
+    >
+      <CustomCursor />
+      <ScrollProgressBar />
       <Header />
       <Hero />
       <Services />
