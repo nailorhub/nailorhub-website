@@ -15,7 +15,8 @@ export default function Header() {
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", onScroll);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
@@ -36,7 +37,16 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="flex items-center justify-between h-[64px]">
           {/* Logo */}
-          <a href="#" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); }} className="flex items-center gap-1">
+          <a
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              setMobileOpen(false);
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+            className="flex items-center gap-1"
+            aria-label="Back to top"
+          >
             <img
               src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/user_69768ca36d17d36952af3138/2f66f57b1_NAILORHUB.png"
               alt="NailorHub"
@@ -53,17 +63,16 @@ export default function Header() {
                 className={[
                   "text-[13px] font-medium tracking-wide uppercase transition-colors",
                   scrolled
-                    ? "text-gray-500 hover:text-[#1b6fb5]"
-                    : "text-white/85 hover:!text-[#1b6fb5]"
+                    ? "text-gray-500 hover:text-[#1a6fb5]"
+                    : "text-white/85 hover:text-[#1a6fb5]",
                 ].join(" ")}
-                
               >
                 {link.label}
               </button>
             ))}
             <Button
               onClick={() => scrollTo("#contact")}
-              className="bg-[#1a6fb5] hover:bg-[#1b6fb5] text-white text-[13px] font-semibold tracking-wide px-5 h-9 rounded-lg shadow-sm"
+              className="bg-[#1a6fb5] hover:bg-[#155d99] text-white text-[13px] font-semibold tracking-wide px-5 h-9 rounded-lg shadow-sm"
             >
               Request a Project
             </Button>
@@ -71,9 +80,12 @@ export default function Header() {
 
           {/* Mobile Toggle */}
           <button
-            className={`md:hidden p-2 transition-colors ${scrolled ? "text-gray-600" : "text-white"}`}
-
-            onClick={() => setMobileOpen(!mobileOpen)}
+            className={`md:hidden p-2 transition-colors ${
+              scrolled ? "text-gray-600" : "text-white"
+            }`}
+            onClick={() => setMobileOpen((v) => !v)}
+            aria-label={mobileOpen ? "Close menu" : "Open menu"}
+            aria-expanded={mobileOpen}
           >
             {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
@@ -89,7 +101,6 @@ export default function Header() {
                 key={link.href}
                 onClick={() => scrollTo(link.href)}
                 className="block w-full text-left py-3 text-sm font-medium text-gray-600 hover:text-[#1a6fb5] border-b border-gray-50 last:border-0"
-
               >
                 {link.label}
               </button>

@@ -100,3 +100,21 @@
   }
 }
 
+/* Hide system cursor on desktop only (keep normal cursor on touch devices) */
+@media (hover: hover) and (pointer: fine) {
+  body {
+    cursor: none;
+  }
+}
+
+/* Prevent layout shift when modals lock body scroll */
+html {
+  overflow-y: scroll;
+  scrollbar-gutter: stable;
+}
+
+/* Optional extra safety */
+body {
+  overflow-y: scroll;
+}
+
