@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const navLinks = [
+  { label: "Home", href: "/", isHome: true },
   { label: "Services", href: "#services" },
   { label: "Approach", href: "#approach" },
   { label: "Current Focus", href: "#focus" },
@@ -12,6 +14,49 @@ const navLinks = [
 export default function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const isHome = location.pathname === "/" || location.pathname === "/Home";
+  const isContactPage = location.pathname === "/contact";
+
+  const scrollTo = (href) => {
+    setMobileOpen(false);
+    const el = document.querySelector(href);
+    if (el) el.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const handleContactClick = () => {
+    setMobileOpen(false);
+    if (isHome) scrollTo("#contact");
+    else navigate("/#contact");
+  };
+
+  const handleRequestProjectClick = () => {
+    setMobileOpen(false);
+    if (isContactPage) return;
+    navigate("/contact");
+  };
+
+  const handleNavClick = (link) => {
+    const href = typeof link === "string" ? link : link.href;
+    if (link.isHome) {
+      setMobileOpen(false);
+      if (isHome) window.scrollTo({ top: 0, behavior: "smooth" });
+      else navigate("/");
+      return;
+    }
+    if (href === "#contact") {
+      handleContactClick();
+      return;
+    }
+    setMobileOpen(false);
+    if (isHome) {
+      const el = document.querySelector(href);
+      if (el) el.scrollIntoView({ behavior: "smooth" });
+    } else {
+      navigate(`/#${href.slice(1)}`);
+    }
+  };
 
   useEffect(() => {
     const getTop = () =>
@@ -32,12 +77,6 @@ export default function Header() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const scrollTo = (href) => {
-    setMobileOpen(false);
-    const el = document.querySelector(href);
-    if (el) el.scrollIntoView({ behavior: "smooth" });
-  };
-
   return (
     <header
     className={[
@@ -50,17 +89,18 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="flex items-center justify-between h-[64px]">
           <a
-            href="#"
+            href="/"
             onClick={(e) => {
               e.preventDefault();
               setMobileOpen(false);
-              window.scrollTo({ top: 0, behavior: "smooth" });
+              if (isHome) window.scrollTo({ top: 0, behavior: "smooth" });
+              else navigate("/");
             }}
             className="flex items-center gap-1"
             aria-label="Back to top"
           >
             <img
-              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/user_69768ca36d17d36952af3138/2f66f57b1_NAILORHUB.png"
+              src="/nailorhub-logo.png"
               alt="NailorHub"
               className="h-[17px] w-auto object-contain"
             />
@@ -70,7 +110,7 @@ export default function Header() {
             {navLinks.map((link) => (
               <button
                 key={link.href}
-                onClick={() => scrollTo(link.href)}
+                onClick={() => handleNavClick(link)}
                 className={[
                   "text-[13px] font-medium tracking-wide uppercase transition-colors",
                   scrolled
@@ -83,7 +123,7 @@ export default function Header() {
             ))}
 
             <Button
-              onClick={() => scrollTo("#contact")}
+              onClick={handleRequestProjectClick}
               className="bg-[#1a6fb5] hover:bg-[#155d99] text-white text-[13px] font-semibold tracking-wide px-5 h-9 rounded-lg shadow-sm"
             >
               Request a Project
@@ -110,7 +150,7 @@ export default function Header() {
             {navLinks.map((link) => (
               <button
                 key={link.href}
-                onClick={() => scrollTo(link.href)}
+                onClick={() => handleNavClick(link)}
                 className="block w-full text-left py-3 text-sm font-medium text-gray-600 hover:text-[#1a6fb5] border-b border-gray-50 last:border-0"
               >
                 {link.label}
@@ -118,7 +158,7 @@ export default function Header() {
             ))}
             <div className="pt-3">
               <Button
-                onClick={() => scrollTo("#contact")}
+                onClick={handleRequestProjectClick}
                 className="w-full bg-[#1a6fb5] hover:bg-[#155d99] text-white text-sm font-semibold h-10 rounded-lg"
               >
                 Request a Project

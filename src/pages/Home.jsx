@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import ScrollProgressBar from "@/components/nailorhub/ScrollProgressBar";
 import Header from "@/components/nailorhub/Header";
 import Hero from "@/components/nailorhub/Hero";
@@ -15,6 +16,15 @@ import CustomCursor from "@/components/nailorhub/CustomCursor";
 
 
 export default function Home() {
+  const { hash } = useLocation();
+
+  useEffect(() => {
+    if (hash) {
+      const el = document.querySelector(hash);
+      if (el) el.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [hash]);
+
   return (
     <div className="bg-white antialiased" style={{ minHeight: "var(--viewport-height, 100svh)" }}>
       <CustomCursor />
@@ -28,7 +38,7 @@ export default function Home() {
         <ToolsSection />
         <CurrentFocus />
         <AboutSection />
-        <ContactForm />
+        <ContactForm simple />
         <FAQ />
         <Footer />
         <FloatingCTA />
