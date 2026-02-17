@@ -38,7 +38,7 @@
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
 
-    /* Radix updates this when it locks scroll */
+    /* Radix may update this when locking scroll */
     --removed-body-scroll-bar-size: 0px;
   }
 
@@ -108,28 +108,33 @@
   }
 }
 
-/* Prevent any horizontal scrollbar from compensation */
+/* Prevent any accidental horizontal scrollbar (especially during dialog animations) */
 html,
 body {
   overflow-x: clip;
 }
 
-/* Keep scrollbar behavior normal. DO NOT force overflow-y: scroll here.
-   Radix will toggle body overflow when dialogs open. */
-
-/* If supported, reserve gutter to reduce shifts in some browsers */
+/* Single scroll container: only html scrolls. Body never gets a scrollbar,
+   so we never get double scrollbars when the dialog opens. */
+html {
+  overflow-y: scroll;
+}
+body {
+  overflow-y: hidden;
+}
 @supports (scrollbar-gutter: stable) {
   html {
     scrollbar-gutter: stable;
   }
 }
 
-/* Cancel Radix body padding-right visually by applying equal negative margin-right */
-#root {
-  margin-right: calc(-1 * var(--removed-body-scroll-bar-size));
+/* Zero Radix scroll-lock compensation so we don't get double scrollbar space.
+   RemoveScroll injects padding-right AND margin-right (gapMode: margin); we
+   override both so layout doesn't shift. */
+body[data-scroll-locked] {
+  margin-right: 0 !important;
+  padding-right: 0 !important;
 }
-
-/* Keep fixed header aligned with the page */
-.site-header {
-  margin-right: calc(-1 * var(--removed-body-scroll-bar-size));
+body[style*="padding-right"] {
+  padding-right: 0 !important;
 }
