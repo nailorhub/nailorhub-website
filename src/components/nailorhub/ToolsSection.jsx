@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Triangle, Zap, Cloud, Code2, Database, Workflow, Wand2 } from "lucide-react";
 import {
@@ -17,7 +17,11 @@ const toolGroups = [
         name: "React",
         logo: "https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/react.svg",
         blurb: "Fast, app-like interfaces with smooth state-driven UX.",
-        details: ["Component-based UI", "Reusable design system patterns", "App-style navigation and interactions"],
+        details: [
+          "Component-based UI",
+          "Reusable design system patterns",
+          "App-style navigation and interactions",
+        ],
       },
       {
         name: "TypeScript",
@@ -174,13 +178,12 @@ function ToolCard({ tool }) {
   const Icon = tool.icon;
 
   return (
-    <Dialog>
+    <Dialog modal={true}>
       <DialogTrigger asChild>
         <button
           type="button"
           className="group relative text-left inline-flex flex-col items-center justify-center w-[150px] sm:w-[160px] px-4 py-4 bg-white border border-gray-300 rounded-xl hover:border-gray-400 hover:shadow-lg transition-all duration-200 shadow-[0_1px_3px_rgba(0,0,0,0.04)]"
         >
-          {/* icon */}
           {tool.logo ? (
             <img
               src={tool.logo}
@@ -197,7 +200,6 @@ function ToolCard({ tool }) {
             {tool.name}
           </span>
 
-          {/* hover popout */}
           <div className="pointer-events-none absolute left-1/2 -translate-x-1/2 top-full mt-2 w-[220px] opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-200 hidden md:block z-20">
             <div className="rounded-xl border border-gray-300 bg-white shadow-xl p-3">
               <div className="text-[12px] font-semibold text-[#1e1e2f] mb-1">
@@ -214,16 +216,12 @@ function ToolCard({ tool }) {
         </button>
       </DialogTrigger>
 
-      <DialogContent className="sm:max-w-[560px]">
+      <DialogContent className="sm:max-w-[560px] max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3">
             <span className="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-[#1a6fb5]/10 border border-[#1a6fb5]/20">
               {tool.logo ? (
-                <img
-                  src={tool.logo}
-                  alt={tool.name}
-                  className="w-5 h-5 opacity-80"
-                />
+                <img src={tool.logo} alt={tool.name} className="w-5 h-5 opacity-80" />
               ) : (
                 <Icon className="w-5 h-5 text-[#1a6fb5]" />
               )}
@@ -252,6 +250,8 @@ function ToolCard({ tool }) {
 }
 
 export default function ToolsSection() {
+
+
   const isMobile = useMemo(() => {
     if (typeof window === "undefined") return false;
     return window.innerWidth < 768;
@@ -277,8 +277,8 @@ export default function ToolsSection() {
             Tools we work with
           </h2>
           <p className="text-[13px] text-gray-600 mt-3 max-w-2xl mx-auto">
-            A mix of modern development, fast prototyping, and reliable deployment
-            options depending on the project.
+            A mix of modern development, fast prototyping, and reliable deployment options depending on
+            the project.
           </p>
         </motion.div>
 
@@ -290,9 +290,7 @@ export default function ToolsSection() {
               whileInView={{ opacity: 1 }}
               viewport={{ once: true, amount: 0.2 }}
               transition={
-                isMobile
-                  ? { duration: 0 }
-                  : { delay: i * 0.08, duration: 0.6, ease: "easeOut" }
+                isMobile ? { duration: 0 } : { delay: i * 0.08, duration: 0.6, ease: "easeOut" }
               }
               className="text-center"
             >
@@ -301,9 +299,7 @@ export default function ToolsSection() {
               </p>
 
               {group.description ? (
-                <p className="text-[12px] text-gray-500 mb-5">
-                  {group.description}
-                </p>
+                <p className="text-[12px] text-gray-500 mb-5">{group.description}</p>
               ) : null}
 
               <div className="flex flex-wrap justify-center gap-4">

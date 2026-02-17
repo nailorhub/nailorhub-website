@@ -1,6 +1,5 @@
 import React from "react";
 import ScrollProgressBar from "@/components/nailorhub/ScrollProgressBar";
-import CustomCursor from "@/components/nailorhub/CustomCursor";
 import Header from "@/components/nailorhub/Header";
 import Hero from "@/components/nailorhub/Hero";
 import Services from "@/components/nailorhub/Services";
@@ -12,26 +11,28 @@ import ContactForm from "@/components/nailorhub/ContactForm";
 import FAQ from "@/components/nailorhub/FAQ";
 import Footer from "@/components/nailorhub/Footer";
 import FloatingCTA from "@/components/nailorhub/FloatingCTA";
+import CustomCursor from "@/components/nailorhub/CustomCursor";
+
 
 export default function Home() {
   return (
-    <div
-      className="bg-white antialiased pt-[64px]"
-      style={{ minHeight: "var(--viewport-height, 100svh)" }}
-    >
+    <div className="bg-white antialiased" style={{ minHeight: "var(--viewport-height, 100svh)" }}>
       <CustomCursor />
       <ScrollProgressBar />
       <Header />
-      <Hero />
-      <Services />
-      <Approach />
-      <ToolsSection />
-      <CurrentFocus />
-      <AboutSection />
-      <ContactForm />
-      <FAQ />
-      <Footer />
-      <FloatingCTA />
+
+      <main className="pt-[0px]">
+        <Hero />
+        <Services />
+        <Approach />
+        <ToolsSection />
+        <CurrentFocus />
+        <AboutSection />
+        <ContactForm />
+        <FAQ />
+        <Footer />
+        <FloatingCTA />
+      </main>
     </div>
   );
 }

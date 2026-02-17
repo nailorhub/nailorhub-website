@@ -14,7 +14,19 @@ export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20);
+    const getTop = () =>
+      document.scrollingElement ? document.scrollingElement.scrollTop : 0;
+
+    const onScroll = () => {
+      const top = getTop();
+
+      setScrolled((prev) => {
+        // Hysteresis band to prevent flicker near threshold
+        if (prev) return top > 8;
+        return top > 24;
+      });
+    };
+
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
@@ -28,15 +40,15 @@ export default function Header() {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+      className={[
+        "fixed top-0 left-0 right-0 z-50 transition-colors duration-300",
         scrolled
-          ? "bg-white md:bg-white/90 md:backdrop-blur-xl shadow-[0_1px_3px_rgba(0,0,0,0.06)] border-b border-gray-100/80"
-          : "bg-transparent"
-      }`}
+          ? "bg-white md:bg-white/90 md:backdrop-blur-xl border-b border-gray-100/80 shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
+          : "bg-transparent border-b border-transparent shadow-none",
+      ].join(" ")}
     >
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="flex items-center justify-between h-[64px]">
-          {/* Logo */}
           <a
             href="#"
             onClick={(e) => {
@@ -50,11 +62,10 @@ export default function Header() {
             <img
               src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/user_69768ca36d17d36952af3138/2f66f57b1_NAILORHUB.png"
               alt="NailorHub"
-              className="h-[17px] md:h-[17px] w-auto object-contain"
+              className="h-[17px] w-auto object-contain"
             />
           </a>
 
-          {/* Desktop Nav */}
           <nav className="hidden md:flex items-center gap-8">
             {navLinks.map((link) => (
               <button
@@ -70,6 +81,7 @@ export default function Header() {
                 {link.label}
               </button>
             ))}
+
             <Button
               onClick={() => scrollTo("#contact")}
               className="bg-[#1a6fb5] hover:bg-[#155d99] text-white text-[13px] font-semibold tracking-wide px-5 h-9 rounded-lg shadow-sm"
@@ -78,11 +90,11 @@ export default function Header() {
             </Button>
           </nav>
 
-          {/* Mobile Toggle */}
           <button
-            className={`md:hidden p-2 transition-colors ${
-              scrolled ? "text-gray-600" : "text-white"
-            }`}
+            className={[
+              "md:hidden p-2 transition-colors",
+              scrolled ? "text-gray-600" : "text-white",
+            ].join(" ")}
             onClick={() => setMobileOpen((v) => !v)}
             aria-label={mobileOpen ? "Close menu" : "Open menu"}
             aria-expanded={mobileOpen}
@@ -92,7 +104,6 @@ export default function Header() {
         </div>
       </div>
 
-      {/* Mobile Menu */}
       {mobileOpen && (
         <div className="md:hidden bg-white border-t border-gray-100 shadow-lg">
           <div className="px-6 py-4 space-y-1">
