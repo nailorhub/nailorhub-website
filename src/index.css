@@ -37,6 +37,9 @@
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Radix updates this when it locks scroll */
+    --removed-body-scroll-bar-size: 0px;
   }
 
   .dark {
@@ -75,8 +78,6 @@
   }
 }
 
-
-
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -107,14 +108,28 @@
   }
 }
 
-/* Prevent layout shift when modals lock body scroll */
-html {
-  overflow-y: scroll;
-  scrollbar-gutter: stable;
-}
-
-/* Optional extra safety */
+/* Prevent any horizontal scrollbar from compensation */
+html,
 body {
-  overflow-y: scroll;
+  overflow-x: clip;
 }
 
+/* Keep scrollbar behavior normal. DO NOT force overflow-y: scroll here.
+   Radix will toggle body overflow when dialogs open. */
+
+/* If supported, reserve gutter to reduce shifts in some browsers */
+@supports (scrollbar-gutter: stable) {
+  html {
+    scrollbar-gutter: stable;
+  }
+}
+
+/* Cancel Radix body padding-right visually by applying equal negative margin-right */
+#root {
+  margin-right: calc(-1 * var(--removed-body-scroll-bar-size));
+}
+
+/* Keep fixed header aligned with the page */
+.site-header {
+  margin-right: calc(-1 * var(--removed-body-scroll-bar-size));
+}
