@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ShieldCheck, Lock, Target } from "lucide-react";
 
@@ -10,10 +11,7 @@ const points = [
 ];
 
 export default function CurrentFocus() {
-  const scrollTo = (href) => {
-    const el = document.querySelector(href);
-    if (el) el.scrollIntoView({ behavior: "smooth" });
-  };
+  const navigate = useNavigate();
 
   return (
     <section id="focus" className="py-24 md:py-32 bg-[#0a1628] relative overflow-hidden">
@@ -67,7 +65,7 @@ export default function CurrentFocus() {
           whileInView={{ opacity: 1 }}
           viewport={{ once: true, amount: 0.3 }}
           transition={isMobile ? { duration: 0 } : { delay: 0.3, duration: 0.6, ease: "easeOut" }}
-          onClick={() => scrollTo("#contact")}
+          onClick={() => navigate("/contact")}
           className="inline-flex items-center px-7 py-3 bg-[#1a6fb5] hover:bg-[#155d99] text-white text-[15px] font-semibold rounded-xl shadow-lg shadow-[#1a6fb5]/20 transition-all"
         >
           Submit a Request

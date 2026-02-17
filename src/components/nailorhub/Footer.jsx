@@ -1,16 +1,36 @@
 import React from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const footerLinks = [
   { label: "Services", href: "#services" },
   { label: "Approach", href: "#approach" },
-  { label: "Contact", href: "#contact" },
+  { label: "Contact", href: "#contact", isContact: true },
   { label: "Privacy", href: "/Privacy", external: true },
 ];
 
 export default function Footer() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const isHome = location.pathname === "/" || location.pathname === "/Home";
+  const isContactPage = location.pathname === "/contact";
+
   const scrollTo = (href) => {
     const el = document.querySelector(href);
     if (el) el.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const handleContactClick = () => {
+    if (isHome || isContactPage) scrollTo("#contact");
+    else navigate("/#contact");
+  };
+
+  const handleFooterLink = (link) => {
+    if (link.isContact) {
+      handleContactClick();
+      return;
+    }
+    if (isHome) scrollTo(link.href);
+    else navigate(`/#${link.href.slice(1)}`);
   };
 
   return (
@@ -19,7 +39,7 @@ export default function Footer() {
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-3">
             <img
-              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/user_69768ca36d17d36952af3138/2f66f57b1_NAILORHUB.png"
+              src="/nailorhub-logo.png"
               alt="NailorHub"
               className="h-[13px] brightness-0 invert opacity-80"
             />
@@ -38,7 +58,7 @@ export default function Footer() {
               ) : (
                 <button
                   key={link.href}
-                  onClick={() => scrollTo(link.href)}
+                  onClick={() => handleFooterLink(link)}
                   className="text-[13px] font-medium text-gray-500 hover:text-gray-300 transition-colors"
                 >
                   {link.label}
