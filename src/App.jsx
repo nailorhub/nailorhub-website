@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
 import { pagesConfig } from './pages.config'
 import PageNotFound from './lib/PageNotFound'
+import ScrollLockOverrides from './ScrollLockOverrides'
 
 const { Pages, Layout, mainPage } = pagesConfig
 const mainPageKey = mainPage ?? Object.keys(Pages)[0]
@@ -11,7 +12,9 @@ const LayoutWrapper = ({ children, currentPageName }) =>
 
 export default function App() {
   return (
-    <Router>
+    <>
+      <ScrollLockOverrides />
+      <Router>
       <Routes>
         <Route
           path="/"
@@ -35,5 +38,6 @@ export default function App() {
         <Route path="*" element={<PageNotFound />} />
       </Routes>
     </Router>
+    </>
   )
 }
