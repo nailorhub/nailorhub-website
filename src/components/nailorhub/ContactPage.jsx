@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import CustomCursor from "@/components/nailorhub/CustomCursor";
 import Header from "@/components/nailorhub/Header";
 import Footer from "@/components/nailorhub/Footer";
@@ -38,6 +38,10 @@ const miniCards = [
 const projectTypes = ["Dashboards", "Internal Tools", "Automation", "Web"];
 
 export default function ContactPage() {
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   return (
     <div className="bg-white antialiased" style={{ minHeight: "var(--viewport-height, 100svh)" }}>
       <CustomCursor />
