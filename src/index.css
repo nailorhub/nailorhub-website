@@ -93,12 +93,10 @@
   }
 }
 
-/* Mobile: keep hero stable on iOS Safari without forcing extra height */
-@media (max-width: 767px) {
-  .hero-section {
-    min-height: var(--viewport-height, 100svh);
-    height: auto;
-  }
+/* Full-viewport hero on all breakpoints (was previously only inside a mobile media query) */
+.hero-section {
+  min-height: 100vh;
+  height: auto;
 }
 
 /* Hide system cursor on desktop only (keep normal cursor on touch devices) */

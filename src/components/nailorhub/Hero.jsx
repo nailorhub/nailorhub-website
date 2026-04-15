@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Settings, Zap, Layers, BarChart3 } from "lucide-react";
 import { motion } from "framer-motion";
@@ -13,37 +13,7 @@ const credibilityItems = [
   { icon: BarChart3, text: "Data-first dashboards" },
 ];
 
-function useIsMobile(breakpointPx = 768) {
-  const getMatches = () => {
-    if (typeof window === "undefined") return true;
-    return window.matchMedia(`(max-width: ${breakpointPx}px)`).matches;
-  };
-
-  const [isMobile, setIsMobile] = useState(getMatches);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const mq = window.matchMedia(`(max-width: ${breakpointPx}px)`);
-    const update = () => setIsMobile(mq.matches);
-
-    update();
-
-    if (mq.addEventListener) mq.addEventListener("change", update);
-    else mq.addListener(update);
-
-    return () => {
-      if (mq.removeEventListener) mq.removeEventListener("change", update);
-      else mq.removeListener(update);
-    };
-  }, [breakpointPx]);
-
-  return isMobile;
-}
-
 export default function Hero() {
-  const isMobile = useIsMobile(768);
-
   const scrollTo = (href) => {
     const el = document.querySelector(href);
     if (el) el.scrollIntoView({ behavior: "smooth" });
@@ -51,7 +21,6 @@ export default function Hero() {
 
   return (
     <section
-      style={{ minHeight: "var(--viewport-height, 100svh)" }}
       className="
         hero-section relative isolate flex flex-col overflow-hidden bg-[#0a1628]
         pb-[calc(env(safe-area-inset-bottom)-35px)] md:pb-0
