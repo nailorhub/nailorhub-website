@@ -6,10 +6,29 @@
     <link rel="icon" type="image/png" href="/favicon.png" />
     <title>NAILORHUB</title>
     <script>
-      (function() {
+      (function () {
         try {
           var root = document.documentElement;
-          if (root && typeof window !== 'undefined') root.style.setProperty('--viewport-height', window.innerHeight + 'px');
+          if (!root || typeof window === "undefined") return;
+
+          function setViewportHeight() {
+            root.style.setProperty("--viewport-height", window.innerHeight + "px");
+          }
+
+          var rafId = null;
+          function schedule() {
+            if (rafId != null) return;
+            rafId = requestAnimationFrame(function () {
+              rafId = null;
+              setViewportHeight();
+            });
+          }
+
+          setViewportHeight();
+          window.addEventListener("resize", schedule, { passive: true });
+          window.addEventListener("orientationchange", setViewportHeight);
+          var vv = window.visualViewport;
+          if (vv) vv.addEventListener("resize", schedule, { passive: true });
         } catch (e) {}
       })();
     </script>

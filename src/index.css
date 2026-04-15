@@ -93,9 +93,9 @@
   }
 }
 
-/* Full-viewport hero on all breakpoints (was previously only inside a mobile media query) */
+/* Matches live window.innerHeight via index.html (updates on resize / visualViewport) */
 .hero-section {
-  min-height: 100vh;
+  min-height: var(--viewport-height, 100vh);
   height: auto;
 }
 
