@@ -260,7 +260,7 @@ export default function ToolsSection() {
   return (
     <section
       className="py-24 md:py-28 bg-gradient-to-b from-white via-[#fafbfd] to-white"
-      id="stack"
+      id="tools"
     >
       <div className="max-w-5xl mx-auto px-6 lg:px-8">
         <motion.div
